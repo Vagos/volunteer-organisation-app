@@ -1,2 +1,32 @@
-# volunteer-organisation-app
-swal level (4)
+# TODO
+
+## Evangelos
+- [ ] Volunteer: Choose team page
+- [ ] Volunteer: See tasks page
+- [ ] Member: Sign in page
+
+## Ioanna
+- [ ] Volunteer: Create models from schema
+
+APPS: member, volunteer, event
+
+## Resources 
+
+https://reactjs.org/tutorial/tutorial.html
+https://docs.djangoproject.com/en/3.2/intro/tutorial03/
+
+### Django:
+
+* django-admin startproject mysite
+* python manage.py startapp myapp
+
+- Migrations:
+
+* python manage.py makemigrations myapp
+
+### Latex: 
+
+* https://texample.net/tikz/examples/entity-relationship-diagram/
+* https://texample.net/tikz/examples/er-diagram/
+* https://tex.stackexchange.com/questions/172315/draw-a-erd-in-crows-foot
+* https://tex.stackexchange.com/questions/462914/how-to-create-an-er-diagram-using-tikzpicture-environment

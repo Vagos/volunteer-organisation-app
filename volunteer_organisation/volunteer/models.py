@@ -87,3 +87,15 @@ class EventOrganisation(models.Model):
 
     def __str__(self):
         return "Event ID: {} ".format(self.event_id)
+
+class EventParticipation(models.Model):
+
+    date = models.DateField()
+    duration = models.DateTimeField(blank=True, default='')
+    impressions = models.CharField(max_length =200, blank=True, default='')
+    
+    member_id = models.ForeignKey('member.Member', on_delete = models.CASCADE)
+    event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
+
+    def __str__(self):
+        pass

@@ -5,4 +5,4 @@ from django.http.response import Http404, HttpResponseRedirect, HttpResponse
 
 def index(request):
 
-    return HttpResponse("Welcome!")
+    return render(request, "member/index.html")

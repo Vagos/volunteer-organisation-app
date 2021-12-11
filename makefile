@@ -10,6 +10,6 @@ all:
 
 clean:
 	for app in "member" "volunteer" "event"; do \
-			rm -r "$(BASE)/$$app/migrations"; \
+			rm -rf "$(BASE)/$$app/migrations"; \
 	done
-	rm $(BASE)/db.sqlite3
+	rm -f $(BASE)/db.sqlite3

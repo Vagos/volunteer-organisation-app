@@ -7,6 +7,7 @@
 
 ## Ioanna
 - [X] Volunteer, Member, Event: Create models from schema
+- [ ] Fix Model's on-delete behaviour
 - [ ] Incomes, Expenses Models
 SOS: Move Employee and Management in Volunteer app
 

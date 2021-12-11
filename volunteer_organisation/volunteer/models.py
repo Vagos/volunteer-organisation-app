@@ -21,7 +21,7 @@ class Participation(models.Model):
     team_name = models.ForeignKey('Team', on_delete = models.CASCADE)
 
     def __str__(self):
-        return "ID: {}(volunter), Team Name: {}".format(self.volunteer_id, self.team_name)
+        return "ID: {}, Team Name: {}".format(self.volunteer_id, self.team_name)
 
 
 class Team(models.Model):
@@ -33,7 +33,7 @@ class Team(models.Model):
     description = models.CharField(max_length = 300)
 
     def __str__(self):
-        return "Participants: {}(volunters), Team Name: {}".format(self.participation, self.team_name)
+        return "Team Name: {}".format(self.name)
 
 class WorksOn(models.Model):
 
@@ -54,8 +54,8 @@ class Task(models.Model):
     difficulty = models.IntegerField()
     completed = models.BooleanField(default = False)
 
-    creator = models.ForeignKey('event.Employee', on_delete = models.CASCADE)
-    # event_name = models.ForeignKey('Event', on_delete = models.CASCADE)
+    creator = models.ForeignKey('event.Employee', on_delete = models.DO_NOTHING)
+    event   = models.ForeignKey('Event', on_delete = models.DO_NOTHING)
 
     def __str__(self):
-        return "Task Name: {} Volunteers in task: {}".format(self.name, self.vol_work)
+        return "Task Name: {} Volunteers in task: {}".format(self.name, self.volunteer_work)

@@ -4,7 +4,7 @@ import datetime
 
 from member.models import Member
 
-# Create your models here.
+# Volunteer Models
 
 class Volunteer(Member):
 
@@ -23,11 +23,29 @@ class Participation(models.Model):
     def __str__(self):
         return "ID: {}, Team Name: {}".format(self.volunteer_id, self.team_name)
 
+class Employee(Member):
+
+    compensation = models.PositiveIntegerField()
+    position_name = models.CharField(max_length = 200)
+
+    def __str__(self):
+        return "Name: {} Surname: {}  ".format(self.name, self.surname)
+
+class Management(models.Model):
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+    employee_id = models.ForeignKey('Employee', on_delete = models.CASCADE)
+    team_name   = models.ForeignKey('Team', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "Manager ID: {}  ".format(self.employee_id)
+
 
 class Team(models.Model):
 
     team_participation = models.ManyToManyField('Volunteer', through = 'Participation')
-    #team_management = models.ManyToManyField('Employee', through = 'Management')
+    team_management = models.ManyToManyField('Employee', through = 'Management')
 
     name = models.CharField(max_length = 200, unique = True)
     description = models.CharField(max_length = 300)
@@ -54,8 +72,18 @@ class Task(models.Model):
     difficulty = models.IntegerField()
     completed = models.BooleanField(default = False)
 
-    creator = models.ForeignKey('event.Employee', on_delete = models.DO_NOTHING)
-    event   = models.ForeignKey('Event', on_delete = models.DO_NOTHING)
+    creator = models.ForeignKey('Employee', on_delete = models.DO_NOTHING)
+    event   = models.ForeignKey('event.Event', on_delete = models.DO_NOTHING)
 
     def __str__(self):
         return "Task Name: {} Volunteers in task: {}".format(self.name, self.volunteer_work)
+
+class EventOrganisation(models.Model):
+
+    reason = models.CharField(max_length = 30)
+    entry_date = models.DateField()
+    event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
+    organiser_id = models.ForeignKey('Employee', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "Event ID: {} ".format(self.event_id)

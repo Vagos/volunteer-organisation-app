@@ -6,11 +6,11 @@
 - [ ] Member: Sign in page
 
 ## Ioanna
-- [ ] Volunteer: Create models from schema
+- [X] Volunteer, Member, Event: Create models from schema
+- [ ] Incomes, Expenses Models
+SOS: Move Employee and Management in Volunteer app
 
-APPS: member, volunteer, event
-
-## Resources 
+## Resources
 
 https://reactjs.org/tutorial/tutorial.html
 https://docs.djangoproject.com/en/3.2/intro/tutorial03/
@@ -24,7 +24,7 @@ https://docs.djangoproject.com/en/3.2/intro/tutorial03/
 
 * python manage.py makemigrations myapp
 
-### Latex: 
+### Latex:
 
 * https://texample.net/tikz/examples/entity-relationship-diagram/
 * https://texample.net/tikz/examples/er-diagram/

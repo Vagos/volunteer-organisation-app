@@ -14,7 +14,9 @@ def join(request):
     return render(request, "member/login.html")
 
 
-def profile(request, name):
+def profile(request, name = None):
+
+    name = name if name else request.session["name"]
 
     return render(request, "member/profile.html", {"name" : name})
 
@@ -25,6 +27,8 @@ def login(request): # This logs users in and creates their account if they don't
     password = request.POST["password"]
 
     if not authenticate(request, username, password): add_user(username, password)
+
+    request.session["name"] = username
 
     return HttpResponseRedirect(reverse("member:profile"))
 
@@ -44,5 +48,5 @@ def add_user(username, password):
 
     with connection.cursor() as cursor:
         
-        cursor.execute("INSERT INTO member_member VALUES (%s, %s, %s)" % (username, "lastnametest", password))
+        cursor.execute("INSERT INTO member_member(name, surname, password) VALUES ('%s', '%s', '%s')" % (username, "lastnametest", password))
 

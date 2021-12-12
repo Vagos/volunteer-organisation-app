@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<form action="{% url 'member:login' %}" method="post">
+  {% csrf_token %}
+  <fieldset>
+  <legend><h1>Join!</h1></legend>
+  <input type="text" name="username" id="username">
+  <input type="text" name="password" id="password">
+  <input type="submit" value="Login">
+  </fieldset>
+  
+</form>
+
+{% endblock content %}

@@ -4,12 +4,13 @@
 - [ ] Volunteer: Choose team page
 - [ ] Volunteer: See tasks page
 - [ ] Member: Sign in page
+- [ ] Fill Database with test data
 
 ## Ioanna
 - [X] Volunteer, Member, Event: Create models from schema
+- [X] Move Employee and Management in Volunteer app
 - [ ] Fix Model's on-delete behaviour
 - [ ] Incomes, Expenses Models
-SOS: Move Employee and Management in Volunteer app
 
 ## Resources
 

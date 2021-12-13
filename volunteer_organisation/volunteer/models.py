@@ -72,8 +72,8 @@ class Task(models.Model):
     difficulty = models.IntegerField()
     completed = models.BooleanField(default = False)
 
-    creator = models.ForeignKey('Employee', on_delete = models.DO_NOTHING)
-    event   = models.ForeignKey('event.Event', on_delete = models.DO_NOTHING)
+    creator = models.ForeignKey('Employee', on_delete = models.CASCADE)
+    event   = models.ForeignKey('event.Event', on_delete = models.CASCADE)
 
     def __str__(self):
         return "Task Name: {} Volunteers in task: {}".format(self.name, self.volunteer_work)
@@ -91,11 +91,11 @@ class EventOrganisation(models.Model):
 class EventParticipation(models.Model):
 
     date = models.DateField()
-    duration = models.DateTimeField(blank=True, default='')
-    impressions = models.CharField(max_length =200, blank=True, default='')
-    
+    duration = models.DateTimeField(blank=True, default='', null = True)
+    impressions = models.CharField(max_length =200, blank=True, default='', null = True)
+
     member_id = models.ForeignKey('member.Member', on_delete = models.CASCADE)
     event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
 
     def __str__(self):
-        pass
+        return "Date: {} Member ID{} Event ID {}".format(self.date, self.member_id, self.event_id)

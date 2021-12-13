@@ -9,8 +9,9 @@
 ## Ioanna
 - [X] Volunteer, Member, Event: Create models from schema
 - [X] Move Employee and Management in Volunteer app
-- [ ] Fix Model's on-delete behaviour
-- [ ] Incomes, Expenses Models
+- [X] Fix Model's on-delete behaviour
+- [X] Incomes, Expenses Models
+- [ ] Fix Composite Foreign keys with raw SQL
 
 ## Resources
 

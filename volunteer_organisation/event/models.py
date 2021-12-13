@@ -31,17 +31,51 @@ class Income(models.Model):
     date = models.DateField()
     member_id = models.PositiveIntegerField()
 
-class Sale(Income):
-    pass
+    def __str__(self):
+        return "Value: {} Member: {}".format(self.value, self.member_id)
 
-class Service(Income):
-    pass
+class Sale(models.Model):
 
-class Donation(Income):
-    pass
+    ammount = models.PositiveIntegerField()
+    item_name = models.CharField(max_length=200)
+    income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "Ammount: {} Income ID: {}".format(self.ammount, self.income_id)
+
+class Service(models.Model):
+
+    description = models.CharField(max_length = 300)
+    income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "Income ID: {}".format(self.income_id)
+
+
+class Donation(models.Model):
+
+    message = models.CharField(max_length = 300)
+    income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "Income ID: {}".format(self.income_id)
+
 
 class Expense(models.Model):
-    pass
 
-class IncomeToExpense():
-    pass
+    date = models.DateField()
+    value = models.PositiveIntegerField()
+    description = models.CharField(max_length = 300)
+    event_id = models.ForeignKey('Event', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "".format()
+
+
+class IncomeToExpense(models.Model):
+
+    income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
+    expense_id = models.ForeignKey('Expense', on_delete = models.CASCADE)
+
+    def __str__(self):
+        return "".format()

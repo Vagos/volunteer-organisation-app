@@ -1,10 +1,11 @@
-# TODO
+## TODO
 
 ## Evangelos
 - [ ] Volunteer: Choose team page
 - [ ] Volunteer: See tasks page
 - [ ] Member: Sign in page
-- [ ] Fill Database with test data
+- [o] Fill Database with test data
+- [ ] Fix way someone sees their Profile
 
 ## Ioanna
 - [X] Volunteer, Member, Event: Create models from schema
@@ -26,6 +27,10 @@ https://docs.djangoproject.com/en/3.2/intro/tutorial03/
 - Migrations:
 
 * python manage.py makemigrations myapp
+
+### SQLite
+
+* https://stackoverflow.com/questions/15819186/sqlite-create-unique-pair-of-columns
 
 ### Latex:
 

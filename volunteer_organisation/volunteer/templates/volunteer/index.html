@@ -1,12 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Volunteer{% endblock %}
+{% block title %}Volunteer Profile{% endblock %}
 
 {% block content %}
-<h1>This is me!</h1>
+<h2>All Teams</h2>
 
-<h2>Teams</h2>
+<ul>
+{% for team in teams %}
+
+<li> <a href={% url 'volunteer:team' team.name %}> {{team.name}} </a> </li>
+
+{% endfor %}
+</ul>
 
 <h2>Recent Tasks</h2>
+
+{% for task in recent_tasks %}
+
+<li> task.name </li>
+
+{% endfor %}
 
 {% endblock content %}

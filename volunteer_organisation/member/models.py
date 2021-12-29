@@ -9,7 +9,6 @@ class Member(models.Model):
 
     name = models.CharField(max_length = 200)
     surname = models.CharField(max_length = 200)
-    password = models.CharField(max_length=200)
 
     dob = models.DateField(default=None, blank=True, null=True)
     email = models.CharField(max_length = 200, default='', blank=True, null=True)

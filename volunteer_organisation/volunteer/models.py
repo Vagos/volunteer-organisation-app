@@ -13,7 +13,7 @@ class Volunteer(Member):
     def __str__(self):
         return "Name: {} Surname: {} (Volunteer)".format( self.name, self.surname )
 
-class Participation(models.Model):
+class TeamParticipation(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()
@@ -84,6 +84,9 @@ class EventOrganisation(models.Model):
     entry_date = models.DateField()
     event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
     organiser_id = models.ForeignKey('Employee', on_delete = models.CASCADE)
+    
+    class Meta:
+        unique_together = ('event_id', 'organiser_id')
 
     def __str__(self):
         return "Event ID: {} ".format(self.event_id)

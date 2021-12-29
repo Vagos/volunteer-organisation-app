@@ -11,6 +11,10 @@
 
 <h2>Events<h2>
 
-<h2>Donate<h2>
+<ul>
+{% for event in events %}
+<li> <a href = {% url 'event:details' event.id %}> {{ event.name }} </a> </li>
+{% endfor %}
+</ul>
 
 {% endblock content %}

@@ -5,9 +5,26 @@ from django.db import connection
 
 # Create your views here.
 
+from collections import namedtuple
+
+def fetchall(cursor):
+    "Return all rows from a cursor as a namedtuple"
+    desc = cursor.description
+    nt_result = namedtuple('Result', [col[0] for col in desc])
+    return [nt_result(*row) for row in cursor.fetchall()]
+
+
 def index(request):
 
-    return render(request, "member/index.html")
+    with connection.cursor() as cursor:
+
+        cursor.execute("SELECT name, id FROM event_event")
+
+        events = fetchall(cursor)
+
+    context = {"events": events}
+
+    return render(request, "member/index.html", context=context)
 
 def join(request):
 

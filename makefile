@@ -6,6 +6,7 @@ all:
 	done
 	python $(BASE)/manage.py migrate
 	python $(BASE)/manage.py createsuperuser --username=admin --email=admin@admin.com
+	python ./data/create_db.py
 
 .PHONY: clean
 

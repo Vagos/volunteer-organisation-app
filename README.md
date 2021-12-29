@@ -32,7 +32,17 @@ https://docs.djangoproject.com/en/3.2/intro/tutorial03/
 
 * https://stackoverflow.com/questions/15819186/sqlite-create-unique-pair-of-columns
 
-### Latex:
+Views: 
+
+```sql
+CREATE VIEW team_members(volunteer_id, name, surname, team_name)
+AS 
+SELECT M.id, M.name, M.surname, VP.team_name_id
+FROM volunteer_participation as VP, member_member as M
+WHERE VP.volunteer_id_id = M.id
+```
+
+[###](###) Latex:
 
 * https://texample.net/tikz/examples/entity-relationship-diagram/
 * https://texample.net/tikz/examples/er-diagram/

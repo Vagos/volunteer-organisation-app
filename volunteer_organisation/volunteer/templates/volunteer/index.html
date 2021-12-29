@@ -15,10 +15,13 @@
 
 <h2>Recent Tasks</h2>
 
+<ol>
 {% for task in recent_tasks %}
 
-<li> task.name </li>
+<li> {{ task.name }} </li>
 
 {% endfor %}
 
 {% endblock content %}
+
+</ol>

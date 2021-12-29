@@ -2,14 +2,16 @@ import sqlite3
 import random
 import string
 
-with open("member_usernames.txt", "r") as member_name_file:
+base = "./data"
+
+with open(base + "/member_usernames.txt", "r") as member_name_file:
     
     member_names, member_surnames = member_name_file.read().strip().split('\n\n')
 
     member_names = member_names.split('\n')
     member_surnames = member_surnames.split('\n')
 
-with open("events.txt", "r") as events_file:
+with open(base + "/events.txt", "r") as events_file:
 
     event_categories, event_name_verbs, event_name_cause, event_places = events_file.read().strip().split('\n\n')
 
@@ -18,7 +20,7 @@ with open("events.txt", "r") as events_file:
     event_categories = event_categories.split('\n')
     event_places = event_places.split('\n')
 
-with open("tasks.txt", "r") as tasks_file:
+with open(base + "/tasks.txt", "r") as tasks_file:
 
     task_verbs, task_targets = tasks_file.read().strip().split('\n\n')
 
@@ -125,23 +127,37 @@ def add_event_categories():
 def add_events():
     for i in range(10):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
-        cursor.execute("""insert into event_event (name, start_date, end_date, place, description, category_id)
-                       values(?, ?, ?, ?, ?, ?)""", (event))
+
+        cmd = """insert into event_event (name, start_date, end_date, place, description, category_id)
+               values('%s', '%s', '%s', '%s', '%s', '%s')""" % event
+
+        print(cmd)
+        cursor.execute(cmd)
 
 def add_employees(n=10):
     for i in range(n):
         employee = create_employee()
         try:
-            cursor.execute("insert into volunteer_employee values(?, ?, ?)", employee)
+            
+            cmd = "INSERT INTO volunteer_employee VALUES(%d, %d, '%s')" % employee
+
+            print(cmd)
+
+            cursor.execute(cmd)
+
         except sqlite3.IntegrityError:
             pass
 
 def add_tasks(n=10):
     for i in range(n):
         task = create_task(task_verbs, task_targets)
-        cursor.execute("""insert into volunteer_task 
-        (name, due_date, entry_date, difficulty, completed, creator_id, event_id)
-                       values(?, ?, ?, ?, ?, ?, ?)""", task)
+
+        cmd = """insert into volunteer_task (name, due_date, entry_date, difficulty, completed, creator_id, event_id)
+       values('%s', '%s', '%s', %d, %d, %d, %d)""" % task
+
+        print(cmd)
+            
+        cursor.execute(cmd)
 
 def add_workson(n=10):
 
@@ -206,7 +222,7 @@ def add_eventorganisations(n=10):
 
 def add_teams(n=10):
 
-    with open("teams.txt", "r") as teams_file:
+    with open(base + "/teams.txt", "r") as teams_file:
 
         team_targets, team_occupation = teams_file.read().strip().split('\n\n')
 
@@ -227,31 +243,53 @@ def add_teams(n=10):
         except sqlite3.IntegrityError:
             pass
 
-connection = sqlite3.connect("../volunteer_organisation/db.sqlite3")
+connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
 cursor = connection.cursor()
+
+def CreateViews():
+
+    cmd = """
+    CREATE VIEW team_members(volunteer_id, name, surname, team_name)
+    AS 
+    SELECT M.id, M.name, M.surname, VP.team_name_id
+    FROM volunteer_participation as VP, member_member as M
+    WHERE VP.volunteer_id_id = M.id
+
+    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name)
+    AS 
+    SELECT M.id, M.name, M.surname, VT.id, VT.name
+    FROM volunteer_task as VT, member_member as M, volunteer_workson as VW
+    WHERE VW.task_id_id = VT.id AND VW.volunteer_id_id = M.id;
+    """
+
+    print(cmd)
+
+    cursor.execute(cmd)
 
 def main():
 
 
-    # add_members()
+    add_members()
 
     # add_event_categories()
-    # add_events()
+    add_events()
 
-    # add_volunteers()
-    # add_employees()
+    add_volunteers()
+    add_employees()
 
-    # add_tasks()
+    add_tasks()
 
-    # add_teams()
+    add_teams()
 
-    # add_workson()
+    add_workson()
     
-    # add_teamparticipations()
+    add_teamparticipations()
 
     add_eventorganisations()
     
-main()
+# main()
+
+CreateViews()
 
 connection.commit()
 connection.close()

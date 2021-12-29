@@ -1,0 +1,33 @@
+.navbar {
+  display: block;
+  margin-right: 1%;
+  margin-left: 1%;
+}
+
+.navbar ul li.page_title {
+  text-align: left;
+  float: left;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.navbar ul {
+  text-align: right;
+  list-style-type: none;
+}
+
+
+.navbar ul li {
+  display: inline;
+  margin-right: 2%;
+}
+
+a, a:focus, a:active {
+      text-decoration: none;
+      color: inherit;
+ }
+
+li a:hover {
+  background-color: black;
+  color: white;
+}

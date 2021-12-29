@@ -13,7 +13,7 @@ class Volunteer(Member):
     def __str__(self):
         return "Name: {} Surname: {} (Volunteer)".format( self.name, self.surname )
 
-class TeamParticipation(models.Model):
+class Participation(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()

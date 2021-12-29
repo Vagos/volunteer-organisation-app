@@ -11,6 +11,27 @@
 
 <h2>Members</h2>
 
+
+{% for member in members %}
+<li>{{ member.name }} {{ member.surname }}</li>
+
+{% empty %}
+
+This team has no members!
+
+{% endfor %}
+
 <h2>Tasks</h2>
+
+These are tasks team members are occupied with.
+
+{% for task in tasks %}
+<li>{{ task.volunteer_name }} {{ task.volunteer_surname }}: {{task.task_name}}</li>
+
+{% empty %}
+
+No tasks are done by any team members!
+
+{% endfor %}
 
 {% endblock %}

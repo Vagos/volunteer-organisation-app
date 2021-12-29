@@ -1,11 +1,12 @@
 <html lang="en">
 <head>
-    <link rel="stylesheet" href="style.css">
+    {% load static %}
+    <link rel="stylesheet" href={% static 'style.css' %}>
     <title>{% block title %}My Site{% endblock %}</title>
 </head>
 
 <body>
-    <div id="sidebar">
+    <div class="navbar">
         {% block sidebar %}
         <ul>
             <li><a href="/member">Member</a></li>

@@ -1,18 +1,18 @@
 ## TODO
 
 ## Evangelos
+- [ ] Fix way someone sees their Profile
+- [ ] Member: Sign in page
 - [ ] Volunteer: Choose team page
 - [ ] Volunteer: See tasks page
-- [ ] Member: Sign in page
 - [o] Fill Database with test data
-- [ ] Fix way someone sees their Profile
 
 ## Ioanna
-- [X] Volunteer, Member, Event: Create models from schema
-- [X] Move Employee and Management in Volunteer app
+- [ ] Fix Composite Foreign keys with raw SQL
 - [X] Fix Model's on-delete behaviour
 - [X] Incomes, Expenses Models
-- [ ] Fix Composite Foreign keys with raw SQL
+- [X] Move Employee and Management in Volunteer app
+- [X] Volunteer, Member, Event: Create models from schema
 
 ## Resources
 
@@ -42,7 +42,22 @@ FROM volunteer_participation as VP, member_member as M
 WHERE VP.volunteer_id_id = M.id
 ```
 
-[###](###) Latex:
+Constraints: 
+
+```sql
+ALTER TABLE dbo.yourtablename
+  ADD CONSTRAINT uq_yourtablename UNIQUE(column1, column2);
+  
+  
+create table foo
+(
+   from_date date,
+   to_date date,
+   constraint check_dates check (from_date < to_date)
+);
+```
+
+### Latex:
 
 * https://texample.net/tikz/examples/entity-relationship-diagram/
 * https://texample.net/tikz/examples/er-diagram/

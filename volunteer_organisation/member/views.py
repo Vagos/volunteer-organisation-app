@@ -18,7 +18,7 @@ def index(request):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT name, id FROM event_event")
+        cursor.execute("SELECT name, id FROM event_event WHERE end_date > date('now')")
 
         events = fetchall(cursor)
 

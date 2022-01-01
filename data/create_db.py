@@ -38,7 +38,7 @@ def create_username(names, surnames):
 
     return name, surname
 
-def create_date(previous_date = "2021-1-1"): 
+def create_date(previous_date = "2015-1-1"): 
     """ Create a random date that happens AFTER previous_date."""
 
     p_y, p_m, p_d = (int(i) for i in previous_date.split('-'))
@@ -110,13 +110,13 @@ def create_workson():
 def add_members(n=10):
     for i in range(n):
         username = create_username(member_names, member_surnames)
-        cursor.execute("insert into member_member (name, surname) values(?, ?);", username)
+        cursor.execute("INSERT INTO member_member (name, surname) VALUES(?, ?)", username)
 
 def add_volunteers(n=10):
     for i in range(n):
         volunteer = create_volunteer()
         try:
-            cursor.execute("insert into volunteer_volunteer values(?, ?)", volunteer)
+            cursor.execute("INSERT INTO volunteer_volunteer VALUES(?, ?)", volunteer)
         except sqlite3.IntegrityError:
             pass
 
@@ -152,8 +152,8 @@ def add_tasks(n=10):
     for i in range(n):
         task = create_task(task_verbs, task_targets)
 
-        cmd = """insert into volunteer_task (name, due_date, entry_date, difficulty, completed, creator_id, event_id)
-       values('%s', '%s', '%s', %d, %d, %d, %d)""" % task
+        cmd = """INSERT INTO volunteer_task (name, due_date, entry_date, difficulty, completed, creator_id, event_id)
+       VALUES('%s', '%s', '%s', %d, %d, %d, %d)""" % task
 
         print(cmd)
             
@@ -190,7 +190,7 @@ def add_teamparticipations(n=10):
         team_participation = create_teamparticipation()
 
         cmd = """
-        INSERT INTO volunteer_participation (start_date, end_date, volunteer_id_id, team_name_id) VALUES ('%s', '%s', %d, '%s')
+        INSERT INTO volunteer_participation (start_date, end_date, volunteer_id_id, team_name_id) VALUES('%s', '%s', %d, '%s')
         """ % team_participation
 
         print(cmd)
@@ -249,29 +249,30 @@ cursor = connection.cursor()
 def CreateViews():
 
     cmd = """
-    CREATE VIEW team_members(volunteer_id, name, surname, team_name)
-    AS 
+    CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS 
     SELECT M.id, M.name, M.surname, VP.team_name_id
     FROM volunteer_participation as VP, member_member as M
-    WHERE VP.volunteer_id_id = M.id
+    WHERE VP.volunteer_id_id = M.id;
+    """
 
-    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name)
-    AS 
+    print(cmd)
+    cursor.execute(cmd)
+
+    cmd = """
+    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS 
     SELECT M.id, M.name, M.surname, VT.id, VT.name
     FROM volunteer_task as VT, member_member as M, volunteer_workson as VW
     WHERE VW.task_id_id = VT.id AND VW.volunteer_id_id = M.id;
     """
 
     print(cmd)
-
     cursor.execute(cmd)
 
 def main():
 
-
     add_members()
 
-    # add_event_categories()
+    add_event_categories()
     add_events()
 
     add_volunteers()
@@ -280,16 +281,14 @@ def main():
     add_tasks()
 
     add_teams()
-
     add_workson()
-    
     add_teamparticipations()
-
-    add_eventorganisations()
     
-# main()
+    add_eventorganisations()
 
-CreateViews()
+    CreateViews()
+    
+main()
 
 connection.commit()
 connection.close()

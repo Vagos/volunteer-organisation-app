@@ -57,6 +57,10 @@ create table foo
 );
 ```
 
+### CSS/HTML
+
+* https://github.com/bradtraversy/design-resources-for-developers
+
 ### Latex:
 
 * https://texample.net/tikz/examples/entity-relationship-diagram/

@@ -1,13 +1,65 @@
 {% extends "base.html" %}
 
-{% block title %}Management{% endblock %}
+{% block title %}Event{% endblock %}
 
 {% block content%}
 
 <h1></h1>
 
-<h2>Transactions<h2>
+<h2>Transactions</h2>
 
-<h2>Create Event<h2>
+<h2>Event Management</h2>
+
+<h4>Create Event</h4>
+
+<form action={% url 'event:add' %} method="post">
+{% csrf_token %}
+<label for="name">Event name:</label>
+<input type="text" id="name" name="name" value="Event Name">
+<br>
+
+<label for="start">Start date:</label>
+<input type="date" id="start" name="start" value="2018-07-22" min="2010-01-01" max="2099-31-12">
+<br>
+
+<label for="end">End date:</label>
+<input type="date" id="end" name="end" value="2018-07-22" min="2010-01-01" max="2099-31-12">
+<br>
+
+<label for="category">Event Category:</label>
+<select id="category" name="category">
+{% for category in event_categories %}
+<option value={{category.category_name}}>{{category.category_name}}</option>
+{% endfor %}
+</select>
+<br>
+
+<label for="description">Event description:</label><br>
+<textarea name="description" rows="5" cols="30"></textarea>
+<br>
+
+<label for="place">Event location:</label><br>
+<textarea name="place" rows="2" cols="30"></textarea>
+<br>
+
+<label for="reason">Organisation reason:</label><br>
+<textarea name="reason" rows="2" cols="30"></textarea>
+<br>
+<br>
+
+ <input type="submit" value="Submit">
+
+</form>
+
+<h4>Add Event Category</h4>
+
+<form action={% url 'event:add_category' %} method="post">
+{% csrf_token %}
+<label for="name">Category name:</label>
+<input type="text" id="name" name="name" value="Category Name">
+
+
+ <input type="submit" value="Submit">
+</form>
 
 {% endblock content%}

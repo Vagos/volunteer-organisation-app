@@ -107,6 +107,12 @@ def create_workson():
 
     return (evaluation, task, volunteer)
 
+
+
+
+def create_income():
+    pass
+
 def add_members(n=10):
     for i in range(n):
         username = create_username(member_names, member_surnames)
@@ -202,7 +208,7 @@ def add_eventorganisations(n=10):
     def create_eventorganisation():
 
         reason = "Event created because " + create_string(20)
-        entry_date = create_date() # This should be before the event's start date.
+        entry_date = "DATE('now')" # This should be before the event's start date.
         event_id_id = cursor.execute("SELECT id FROM event_event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         organiser_id_id = cursor.execute("SELECT member_ptr_id FROM volunteer_employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
@@ -215,9 +221,12 @@ def add_eventorganisations(n=10):
         cmd = """
         INSERT INTO volunteer_eventorganisation (reason, entry_date, event_id_id, organiser_id_id) VALUES('%s', '%s', %d, %d)
         """ % eventorganisation
-        
-        print(cmd)
-        cursor.execute(cmd)
+       
+        try:
+            print(cmd)
+            cursor.execute(cmd)
+        except sqlite3.IntegrityError:
+            pass
 
 
 def add_teams(n=10):
@@ -242,6 +251,38 @@ def add_teams(n=10):
             cursor.execute(cmd)
         except sqlite3.IntegrityError:
             pass
+
+def add_eventparticipations(n=10):
+
+    def create_eventparticipation():
+
+        date = create_date()
+        impressions = "I thought the event was " + create_string(10)
+        member = cursor.execute("SELECT id FROM member_member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event = cursor.execute("SELECT id FROM event_event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        duration = 'null'
+
+        return (date, duration, impressions, event, member)
+
+    for i in range(n):
+        event_participation = create_eventparticipation()
+
+        cmd = """
+        INSERT INTO volunteer_eventparticipation (date, duration, impressions, event_id_id, member_id_id) VALUES('%s', '%s', '%s', '%s', '%s')
+        """ % event_participation
+
+        print(cmd)
+
+        cursor.execute(cmd)
+
+def add_incomes(n=10):
+
+    def create_income():
+        participation = cursor.execute("SELECT id FROM volunteer_eventparticipation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        value = random.randint(1, 10000)
+        date = create_date() # this should be betwen the dates of the event participation
+
+        return (value, date)
 
 connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
 cursor = connection.cursor()
@@ -286,9 +327,12 @@ def main():
     
     add_eventorganisations()
 
+    add_eventparticipations()
+
     CreateViews()
     
-main()
+# main()
+
 
 connection.commit()
 connection.close()

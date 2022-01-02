@@ -2,18 +2,18 @@
 <head>
     {% load static %}
     <link rel="stylesheet" href={% static 'style.css' %}>
-    <title>{% block title %}My Site{% endblock %}</title>
+    <!--    <link rel="stylesheet" href="https://latex.now.sh/style.css"> -->
+    <title>Volunteer Organisation</title>
 </head>
 
 <body>
     <div class="navbar">
-        {% block sidebar %}
         <ul>
+            <li class="page_title"> {% block title %} {% endblock title %}</li>
             <li><a href="/member">Member</a></li>
             <li><a href="/volunteer">Volunteer</a></li>
             <li><a href="/event">Event</a></li>
         </ul>
-        {% endblock %}
     </div>
 
     <div id="content">

@@ -3,13 +3,9 @@
 {% block title %}Member{% endblock %}
 
 {% block content %}
-<h1>Welcome</h1>
 
-<button><a href= {% url 'member:join' %}>Join</a></button> 
 
-<a href = {% url 'member:profile' %}>Profile</a>
-
-<h2>Events<h2>
+<h2>Events</h2>
 
 <ul>
 {% for event in events %}
@@ -17,4 +13,10 @@
 {% endfor %}
 </ul>
 
+<a href= {% url 'member:join' %}>Join Us</a>
+<br>
+<a href = {% url 'member:profile' %}>Profile</a>
+
 {% endblock content %}
+
+

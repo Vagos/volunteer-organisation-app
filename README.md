@@ -3,11 +3,14 @@
 ## Evangelos
 - [ ] Fix way someone sees their Profile
 - [ ] Member: Sign in page
-- [ ] Volunteer: Choose team page
-- [ ] Volunteer: See tasks page
+- [X] Volunteer: Choose team page
+- [X] Volunteer: See tasks page
 - [o] Fill Database with test data
+- [ ] Find hardest working volunteer/Volunteer of the month
+- [ ] Color code tasks based on difficulty
 
 ## Ioanna
+- [ ] In event participation, member_id and event_id should be unique.
 - [ ] Fix Composite Foreign keys with raw SQL
 - [X] Fix Model's on-delete behaviour
 - [X] Incomes, Expenses Models

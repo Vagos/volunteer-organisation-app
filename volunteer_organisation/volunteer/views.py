@@ -32,6 +32,7 @@ def index(request):
 
     return render(request, "volunteer/index.html", context=context)
 
+
 def team(request, team_name):
 
     with connection.cursor() as cursor:
@@ -58,3 +59,27 @@ def team(request, team_name):
     print(context)
 
     return render(request, "volunteer/team.html", context=context)
+
+def task(request, task_id):
+
+    with connection.cursor() as cursor:
+    
+        cursor.execute("""
+        SELECT * FROM volunteer_task WHERE id = %d
+        """ % (task_id))
+
+        task = fetchall(cursor)[0]
+
+        cursor.execute("""
+        SELECT * FROM volunteer_task_assigned WHERE task_id = %d
+        """ % (task_id))
+
+        working_on = fetchall(cursor)
+
+    context = {"task":task, "working_on":working_on}
+
+    return render(request, "volunteer/task.html", context=context)
+
+def volunteer(request, volunteer_id):
+
+    return render(request, "volunteer/volunteer.html")

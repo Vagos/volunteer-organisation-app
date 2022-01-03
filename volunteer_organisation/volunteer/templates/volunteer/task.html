@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Task{% endblock %}
+
+{% block content %}
+
+<h4>Task - {{ task.name }}</h4>
+
+Volunteers working on this task: 
+
+{% for volunteer in working_on %}
+<li>{{volunteer.volunteer_name}} {{volunteer.volunteer_surname}}</li>
+{% endfor %}
+
+{% endblock content %}

@@ -219,7 +219,7 @@ def add_eventorganisations(n=10):
         eventorganisation = create_eventorganisation()
 
         cmd = """
-        INSERT INTO volunteer_eventorganisation (reason, entry_date, event_id_id, organiser_id_id) VALUES('%s', '%s', %d, %d)
+        INSERT INTO volunteer_eventorganisation (reason, entry_date, event_id_id, organiser_id_id) VALUES('%s', %s, %d, %d)
         """ % eventorganisation
        
         try:
@@ -331,7 +331,7 @@ def main():
 
     CreateViews()
     
-# main()
+main()
 
 
 connection.commit()

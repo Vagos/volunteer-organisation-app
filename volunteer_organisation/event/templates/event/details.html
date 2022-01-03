@@ -16,6 +16,18 @@ End Date: {{ event.end_date }}
 
 <h2>Participants</h2>
 
+<ol>
+    {%for participant in participants %}
+    <li>{{participant.name}} {{participant.surname}}</li>
+    {%endfor%}
+</ol>
+
 <h2>Tasks</h2>
+
+<ol>
+    {%for task in tasks%}
+    <li><a href={% url 'volunteer:task' task.id%}>{{task.name}}</a></li>
+    {%endfor%}
+</ol>
 
 {% endblock content %}

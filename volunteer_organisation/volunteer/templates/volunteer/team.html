@@ -13,7 +13,7 @@
 
 
 {% for member in members %}
-<li>{{ member.name }} {{ member.surname }}</li>
+<li><a href={% url 'volunteer:profile' member.volunteer_id%}>{{ member.name }} {{ member.surname }}</a></li>
 
 {% empty %}
 

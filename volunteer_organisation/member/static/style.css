@@ -19,7 +19,7 @@ body { background-color: var(--bg-color); color: var(--main-color); font-family:
 
 button {
   --pad: 30px;
-  background-color: cyan;
+  background-color: var(--bg-color);
   padding-right: var(--pad);
   padding-left: var(--pad);
 }

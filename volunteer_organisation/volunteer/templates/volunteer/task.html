@@ -6,10 +6,29 @@
 
 <h4>Task - {{ task.name }}</h4>
 
-Volunteers working on this task: 
+<ul>
+    <li><b>Event: </b><a href={% url 'event:details' task.event_id %}>{{task.event_name}}</a></li>
+    <li><b>Creator: </b> </li>
+    <li><b>Difficulty: </b> {{task.difficulty}}</li>
+</ul>
+
+<div style="text-align: center;">
+<button>Work on this Task!</button>
+</div>
+
+<h4>Volunteers working on this task</h4>
 
 {% for volunteer in working_on %}
-<li>{{volunteer.volunteer_name}} {{volunteer.volunteer_surname}}</li>
+<div style="border-style: solid;">
+<a href={%url 'volunteer:profile' volunteer.volunteer_id%}>{{volunteer.volunteer_name}} {{volunteer.volunteer_surname}}</a>
+
+<p>
+    Task evaluation.
+</p>
+
+</div>
+<br>
 {% endfor %}
+
 
 {% endblock content %}

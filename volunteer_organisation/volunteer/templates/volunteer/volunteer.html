@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Volunteer Profile{% endblock %}
+
+{% block content %}
+
+<ul>
+    <li><b>First Name</b>: {{volunteer.name}} </li>
+    <li><b>Last Name</b>: {{volunteer.surname}} </li>
+    <li><b>Join Date</b>: {{volunteer.join_date}}</li>
+    <li><b>Tasks Completed</b>: {{volunteer.join_date}}</li>
+    <li><b>Favorite Category</b>: {{volunteer.join_date}}</li>
+</ul>
+
+<h4>Current Tasks: </h4>
+
+{% for task in tasks %}
+<li><a href={%url 'volunteer:task' task.task_id%}>{{task.task_name}}</a></li>
+{% endfor %}
+
+{% endblock content %}

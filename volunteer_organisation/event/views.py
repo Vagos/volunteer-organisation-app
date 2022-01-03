@@ -33,7 +33,15 @@ def details(request, event_id):
         cursor.execute("SELECT * FROM event_event AS e WHERE e.id = %d" % event_id) 
         event = fetchall(cursor)[0]
 
-    context = {"event" : event}
+        cursor.execute("SELECT id, name FROM volunteer_task WHERE event_id = %d" % event_id)
+        tasks = fetchall(cursor)
+
+        cursor.execute("""SELECT M.name, M.surname from volunteer_eventparticipation AS EP
+                        JOIN member_member AS M ON EP.member_id_id = M.id
+                       WHERE EP.event_id_id = %d""" % (event_id))
+        participants = fetchall(cursor)
+
+    context = {"event":event, "tasks":tasks, "participants":participants}
 
     return render(request, "event/details.html", context=context)
 

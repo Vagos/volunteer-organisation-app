@@ -41,7 +41,7 @@ def team(request, team_name):
 
         team = fetchall(cursor)[0]
 
-        cursor.execute("""SELECT name, surname FROM  team_members
+        cursor.execute("""SELECT volunteer_id, name, surname FROM  team_members
                        WHERE team_name = '%s' 
                        """ % (team_name))
 
@@ -65,7 +65,10 @@ def task(request, task_id):
     with connection.cursor() as cursor:
     
         cursor.execute("""
-        SELECT * FROM volunteer_task WHERE id = %d
+        SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty 
+        FROM volunteer_task AS VT JOIN event_event AS E 
+        ON VT.event_id = E.id
+        WHERE VT.id = %d
         """ % (task_id))
 
         task = fetchall(cursor)[0]
@@ -80,6 +83,23 @@ def task(request, task_id):
 
     return render(request, "volunteer/task.html", context=context)
 
-def volunteer(request, volunteer_id):
+def profile(request, volunteer_id):
 
-    return render(request, "volunteer/volunteer.html")
+    with connection.cursor() as cursor:
+
+        cursor.execute("""
+        SELECT name, surname, join_date FROM member_member, volunteer_volunteer
+        WHERE id = %d
+        """ % (volunteer_id))
+
+        volunteer = fetchall(cursor)[0]
+
+        cursor.execute("""
+        SELECT task_name, task_id FROM volunteer_task_assigned
+        WHERE volunteer_id = %d """ % (volunteer_id))
+
+        tasks = fetchall(cursor);
+
+        context = {"volunteer":volunteer, "tasks":tasks}
+
+    return render(request, "volunteer/volunteer.html", context=context)

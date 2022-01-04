@@ -50,7 +50,7 @@ def login(request): # This logs users in and creates their account if they don't
     return HttpResponseRedirect(reverse("member:profile"))
 
 def authenticate(request, username, password):
-    
+
     with connection.cursor() as cursor:
 
         cursor.execute("SELECT * FROM member_member") # WHERE name = %s AND password = %s" % (username, password))
@@ -64,6 +64,5 @@ def authenticate(request, username, password):
 def add_user(username, password):
 
     with connection.cursor() as cursor:
-        
-        cursor.execute("INSERT INTO member_member(name, surname, password) VALUES ('%s', '%s', '%s')" % (username, "lastnametest", password))
 
+        cursor.execute("INSERT INTO member_member(name, surname, password) VALUES ('%s', '%s', '%s')" % (username, "lastnametest", password))

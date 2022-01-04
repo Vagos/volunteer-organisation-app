@@ -5,7 +5,7 @@ import string
 base = "./data"
 
 with open(base + "/member_usernames.txt", "r") as member_name_file:
-    
+
     member_names, member_surnames = member_name_file.read().strip().split('\n\n')
 
     member_names = member_names.split('\n')
@@ -38,7 +38,7 @@ def create_username(names, surnames):
 
     return name, surname
 
-def create_date(previous_date = "2015-1-1"): 
+def create_date(previous_date = "2015-1-1"):
     """ Create a random date that happens AFTER previous_date."""
 
     p_y, p_m, p_d = (int(i) for i in previous_date.split('-'))
@@ -46,7 +46,7 @@ def create_date(previous_date = "2015-1-1"):
     y = random.randint(p_y, 2022)
     m = random.randint(p_m, 12)
     d = random.randint(p_d, 28 if m == 2 else 30)
-        
+
     return "%d-%d-%d" % (y, m, d)
 
 def create_event(categories, verbs, causes, places):
@@ -55,7 +55,7 @@ def create_event(categories, verbs, causes, places):
 
     start_date = create_date()
     end_date = create_date(start_date)
-    
+
     place = random.choice(places)
     description = create_string(20)
     category = random.choice(categories)
@@ -70,7 +70,7 @@ def create_volunteer():
     return (member_ptr_id, join_date)
 
 def create_employee():
-    
+
     member_ptr_id = cursor.execute("select id from member_member order by random() limit 1").fetchone()[0]
     compensation = random.randint(100, 10_000)
     position_name = "A Position"
@@ -128,13 +128,13 @@ def add_volunteers(n=10):
 
 def add_event_categories():
     for c in event_categories:
-        cursor.execute("insert into event_eventcategory (category_name) values(?)", (c,))
+        cursor.execute("insert into event_eventcategory (name) values(?)", (c,))
 
 def add_events():
     for i in range(10):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
 
-        cmd = """insert into event_event (name, start_date, end_date, place, description, category_id)
+        cmd = """insert into event_event (name, start_date, end_date, place, description, category)
                values('%s', '%s', '%s', '%s', '%s', '%s')""" % event
 
         print(cmd)
@@ -144,7 +144,7 @@ def add_employees(n=10):
     for i in range(n):
         employee = create_employee()
         try:
-            
+
             cmd = "INSERT INTO volunteer_employee VALUES(%d, %d, '%s')" % employee
 
             print(cmd)
@@ -158,11 +158,11 @@ def add_tasks(n=10):
     for i in range(n):
         task = create_task(task_verbs, task_targets)
 
-        cmd = """INSERT INTO volunteer_task (name, due_date, entry_date, difficulty, completed, creator_id, event_id)
+        cmd = """INSERT INTO volunteer_task (name, due_date, entry_date, difficulty, completed, creator, event)
        VALUES('%s', '%s', '%s', %d, %d, %d, %d)""" % task
 
         print(cmd)
-            
+
         cursor.execute(cmd)
 
 def add_workson(n=10):
@@ -174,7 +174,7 @@ def add_workson(n=10):
         INSERT INTO volunteer_workson (evaluation, task_id_id, volunteer_id_id)
         VALUES('%s', %d, %d)
         """ % workson
-        
+
         print(cmd)
 
         cursor.execute(cmd)
@@ -221,7 +221,7 @@ def add_eventorganisations(n=10):
         cmd = """
         INSERT INTO volunteer_eventorganisation (reason, entry_date, event_id_id, organiser_id_id) VALUES('%s', %s, %d, %d)
         """ % eventorganisation
-       
+
         try:
             print(cmd)
             cursor.execute(cmd)
@@ -290,7 +290,7 @@ cursor = connection.cursor()
 def CreateViews():
 
     cmd = """
-    CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS 
+    CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS
     SELECT M.id, M.name, M.surname, VP.team_name_id
     FROM volunteer_participation as VP, member_member as M
     WHERE VP.volunteer_id_id = M.id;
@@ -300,7 +300,7 @@ def CreateViews():
     cursor.execute(cmd)
 
     cmd = """
-    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS 
+    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS
     SELECT M.id, M.name, M.surname, VT.id, VT.name
     FROM volunteer_task as VT, member_member as M, volunteer_workson as VW
     WHERE VW.task_id_id = VT.id AND VW.volunteer_id_id = M.id;
@@ -324,13 +324,13 @@ def main():
     add_teams()
     add_workson()
     add_teamparticipations()
-    
+
     add_eventorganisations()
 
     add_eventparticipations()
 
     CreateViews()
-    
+
 main()
 
 

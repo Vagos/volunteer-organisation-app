@@ -13,7 +13,7 @@ class Volunteer(Member):
     def __str__(self):
         return "Name: {} Surname: {} (Volunteer)".format( self.name, self.surname )
 
-class Participation(models.Model):
+class TeamParticipation(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()
@@ -31,12 +31,15 @@ class Employee(Member):
     def __str__(self):
         return "Name: {} Surname: {}  ".format(self.name, self.surname)
 
-class Management(models.Model):
+class TeamManagement(models.Model):
 
     start_date = models.DateField()
     end_date = models.DateField()
     employee_id = models.ForeignKey('Employee', on_delete = models.CASCADE)
     team_name   = models.ForeignKey('Team', on_delete = models.CASCADE)
+
+    class Meta:
+        unique_together = ('employee_id', 'team_name')
 
     def __str__(self):
         return "Manager ID: {}  ".format(self.employee_id)
@@ -44,10 +47,9 @@ class Management(models.Model):
 
 class Team(models.Model):
 
-    team_participation = models.ManyToManyField('Volunteer', through = 'Participation')
-    team_management = models.ManyToManyField('Employee', through = 'Management')
+    participation = models.ManyToManyField('Volunteer', through = 'TeamParticipation')
 
-    name = models.CharField(max_length = 200, unique = True)
+    name = models.CharField(max_length = 200, unique = True, primary_key = True)
     description = models.CharField(max_length = 300)
 
     def __str__(self):
@@ -75,6 +77,9 @@ class Task(models.Model):
     creator = models.ForeignKey('Employee', on_delete = models.CASCADE)
     event   = models.ForeignKey('event.Event', on_delete = models.CASCADE)
 
+    class Meta:
+        unique_together = ('creator', 'event')
+
     def __str__(self):
         return "Task Name: {} Volunteers in task: {}".format(self.name, self.volunteer_work)
 
@@ -84,7 +89,7 @@ class EventOrganisation(models.Model):
     entry_date = models.DateField()
     event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
     organiser_id = models.ForeignKey('Employee', on_delete = models.CASCADE)
-    
+
     class Meta:
         unique_together = ('event_id', 'organiser_id')
 
@@ -97,8 +102,12 @@ class EventParticipation(models.Model):
     duration = models.DateTimeField(blank=True, default='', null = True)
     impressions = models.CharField(max_length =200, blank=True, default='', null = True)
 
-    member_id = models.ForeignKey('member.Member', on_delete = models.CASCADE)
+    member_id = models.ForeignKey('member.Member', on_delete = models.CASCADE, primary_key = True)
     event_id = models.ForeignKey('event.Event', on_delete = models.CASCADE)
+
+    class Meta:
+        unique_together = ('member_id', 'event_id')
+
 
     def __str__(self):
         return "Date: {} Member ID{} Event ID {}".format(self.date, self.member_id, self.event_id)

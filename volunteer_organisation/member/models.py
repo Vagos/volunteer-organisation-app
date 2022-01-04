@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils import timezone
 import datetime
+from django.db import connection, transaction
 
 # Create your models here.
 
@@ -10,10 +11,12 @@ class Member(models.Model):
     name = models.CharField(max_length = 200)
     surname = models.CharField(max_length = 200)
 
-    dob = models.DateField(default=None, blank=True, null=True)
+    date_of_birth = models.DateField(default=None, blank=True, null=True)
     email = models.CharField(max_length = 200, default='', blank=True, null=True)
     city_of_residense = models.CharField(max_length =200, blank=True, default='', null=True)
     phone_number = models.CharField(max_length =13, blank=True, default='', null=True)
+
+    #event_participation = models.ManyToManyField('event.Event', through  = 'volunteer.EventParticipation' )
 
     def __str__(self):
         return "Name: {} Surname: {}".format(self.name, self.surname)

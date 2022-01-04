@@ -6,10 +6,10 @@ import datetime
 
 class EventCategory(models.Model):
 
-    category_name = models.CharField(max_length=20, unique=True, primary_key=True)
+    name = models.CharField(max_length=20, unique=True, primary_key=True)
 
     def __str__(self):
-        return "Category Name: {}".format(self.category_name)
+        return "Category Name: {}".format(self.name)
 
 class Event(models.Model):
 
@@ -28,11 +28,15 @@ class Event(models.Model):
 class Income(models.Model):
 
     value = models.PositiveIntegerField()
-    date = models.DateField()
-    member_id = models.PositiveIntegerField()
+    # date = models.ForeignKey('volunteer.EventParticipation', on_delete = models.CASCADE,
+    #                         related_name='%(class)s_date')
+    # member_id = models.ForeignKey('volunteer.EventParticipation', on_delete = models.CASCADE)
+    #
+    # class Meta:
+    #     unique_together = ('member_id', 'date')
 
     def __str__(self):
-        return "Value: {} Member: {}".format(self.value, self.member_id)
+        return "Value: {}".format(self.value)
 
 class Sale(models.Model):
 
@@ -41,7 +45,7 @@ class Sale(models.Model):
     income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
 
     def __str__(self):
-        return "Ammount: {} Income ID: {}".format(self.ammount, self.income_id)
+        return "Ammount: {} Income ID: {}".format(seFieldlf.ammount, self.income_id)
 
 class Service(models.Model):
 
@@ -69,7 +73,7 @@ class Expense(models.Model):
     event_id = models.ForeignKey('Event', on_delete = models.CASCADE)
 
     def __str__(self):
-        return "".format()
+        return "Value {}".format(self.value)
 
 
 class IncomeToExpense(models.Model):
@@ -77,5 +81,8 @@ class IncomeToExpense(models.Model):
     income_id = models.ForeignKey('Income', on_delete = models.CASCADE)
     expense_id = models.ForeignKey('Expense', on_delete = models.CASCADE)
 
+    class Meta:
+        unique_together = ('income_id', 'expense_id')
+
     def __str__(self):
-        return "".format()
+        return "Income ID: {} Expense ID: {}".format(self.income_id, self.expense_id)

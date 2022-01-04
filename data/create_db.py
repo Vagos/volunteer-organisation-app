@@ -331,7 +331,7 @@ def main():
 
     CreateViews()
     
-main()
+# main()
 
 
 connection.commit()

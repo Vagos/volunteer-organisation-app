@@ -62,20 +62,7 @@ def create_event(categories, verbs, causes, places):
 
     return (event_name, start_date, end_date, place, description, category)
 
-def create_volunteer():
 
-    member_ptr_id = cursor.execute("select id from member_member order by random() limit 1").fetchone()[0]
-    join_date = create_date()
-
-    return (member_ptr_id, join_date)
-
-def create_employee():
-
-    member_ptr_id = cursor.execute("select id from member_member order by random() limit 1").fetchone()[0]
-    compensation = random.randint(100, 10_000)
-    position_name = "A Position"
-
-    return (member_ptr_id, compensation, position_name)
 
 def create_team(targets, occupation):
     team_name = random.choice(targets) + ' ' + random.choice(occupation)
@@ -98,49 +85,123 @@ def create_task(verbs, targets):
 
     return (name, due_date, entry_date, difficulty, completed, creator, event)
 
-def create_workson():
-
-    volunteer = cursor.execute("SELECT member_ptr_id FROM volunteer_volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-    task = cursor.execute("SELECT id FROM volunteer_task ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-
-    evaluation = "I think the task was done " + create_string(10);
-
-    return (evaluation, task, volunteer)
-
-
 
 
 def create_income():
     pass
 
 def add_members(n=10):
+    
+    cmd = """
+    CREATE TABLE IF NOT EXISTS "member" (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    "fname" varchar(30) NOT NULL,
+    "lname" varchar(30) NOT NULL,
+    "date_of_birth" date DEFAULT NULL,
+    "email" varchar(50) DEFAULT NULL,
+    "city_of_residence" varchar(50) NULL,
+    "phone_number" varchar(13) NULL
+    );
+    """
+    print(cmd)
+
+    cursor.execute(cmd)
+
     for i in range(n):
         username = create_username(member_names, member_surnames)
-        cursor.execute("INSERT INTO member_member (name, surname) VALUES(?, ?)", username)
+        cmd = "INSERT INTO member (fname, lname) VALUES('%s', '%s');" % username
+        print(cmd)
+
+    cursor.execute(cmd)
 
 def add_volunteers(n=10):
+
+    cmd = """
+    CREATE TABLE IF NOT EXISTS "volunteer"
+    ("id" integer NOT NULL PRIMARY KEY REFERENCES "member" ("id"),
+    "join_date" date NOT NULL
+    );
+    """
+
+    print(cmd)
+
+    cursor.execute(cmd)
+
+    def create_volunteer():
+
+        id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        join_date = create_date()
+
+        return (id, join_date)
+
     for i in range(n):
         volunteer = create_volunteer()
+        
+        cmd = """
+        INSERT INTO volunteer VALUES('%s', '%s');
+        """ % volunteer
+
+        print(cmd)
+
         try:
-            cursor.execute("INSERT INTO volunteer_volunteer VALUES(?, ?)", volunteer)
+            cursor.execute(cmd)
         except sqlite3.IntegrityError:
             pass
 
 def add_event_categories():
+
+    cmd = """
+    DROP TABLE IF EXISTS event_category;
+
+    CREATE TABLE IF NOT EXISTS "event_category"
+    ("name" varchar(30) NOT NULL PRIMARY KEY);
+    """
+
+    print(cmd)
+
     for c in event_categories:
-        cursor.execute("insert into event_eventcategory (name) values(?)", (c,))
+        cmd = """
+        INSERT INTO event_eventcategory (name) values('%s');
+        """ 
+        print(cmd)
+        # cursor.execute(cmd)
 
 def add_events():
     for i in range(10):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
 
-        cmd = """insert into event_event (name, start_date, end_date, place, description, category)
+        cmd = """INSERT INTO event_event (name, start_date, end_date, place, description, category_id)
                values('%s', '%s', '%s', '%s', '%s', '%s')""" % event
 
         print(cmd)
         cursor.execute(cmd)
 
 def add_employees(n=10):
+
+
+    cmd = """
+    CREATE TABLE IF NOT EXISTS  "employee" 
+    (
+        "id" int NOT NULL,
+        "compensation" int NOT NULL DEFAULT 0,
+        "position_name" varchar(30) NOT NULL DEFAULT '',
+
+        CONSTRAINT "employee_fk" FOREIGN KEY("id") REFERENCES "member"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+        CONSTRAINT compensation_positive CHECK (compensation > 0),
+        PRIMARY KEY("id")
+    );
+    """
+
+    print(cmd)
+
+    def create_employee():
+
+        _id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        compensation = random.randint(100, 10_000)
+        position_name = "A Position"
+
+        return (_id, compensation, position_name)
+
     for i in range(n):
         employee = create_employee()
         try:
@@ -155,10 +216,29 @@ def add_employees(n=10):
             pass
 
 def add_tasks(n=10):
+
+    cmd = """
+    CREATE TABLE IF NOT EXISTS "task" 
+    (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" varchar(20) NOT NULL,
+    "due_date" date NOT NULL, 
+    "entry_date" date DEFAULT NULL,
+    "difficulty" smallint NOT NULL DEFAULT '1',
+    "completed" book NOT NULL,
+    "creator" integer NOT NULL REFERENCES "employee"("id"),
+    "event" integer NOT NULL REFERENCES "event"("id")
+    );
+    """
+
+    print(cmd)
+
+    cursor.execute(cmd)
+
     for i in range(n):
         task = create_task(task_verbs, task_targets)
 
-        cmd = """INSERT INTO volunteer_task (name, due_date, entry_date, difficulty, completed, creator, event)
+        cmd = """INSERT INTO task (name, due_date, entry_date, difficulty, completed, creator, event)
        VALUES('%s', '%s', '%s', %d, %d, %d, %d)""" % task
 
         print(cmd)
@@ -166,6 +246,30 @@ def add_tasks(n=10):
         cursor.execute(cmd)
 
 def add_workson(n=10):
+
+    cmd = """
+    CREATE TABLE IF NOT EXISTS  "works_on" 
+    (
+    volunteer integer NOT NULL,
+    task integer NOT NULL,
+
+    PRIMARY KEY ("volunteer", "task"),
+    CONSTRAINT "works_on_fk0" FOREIGN KEY("volunteer") REFERENCES "volunteer" ("id") ON DELETE CASCADE  ON UPDATE CASCADE,
+    CONSTRAINT "works_on_fk1" FOREIGN KEY("task") REFERENCES "task" ("id") ON DELETE CASCADE  ON UPDATE CASCADE
+    );
+"""
+    print(cmd)
+
+    cursor.execute(cmd)
+
+    def create_workson():
+
+        volunteer = cursor.execute("SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        task = cursor.execute("SELECT id FROM task ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        evaluation = "I think the task was done " + create_string(10);
+
+        return (evaluation, task, volunteer)
 
     for i in range(n):
         workson = create_workson()
@@ -181,22 +285,37 @@ def add_workson(n=10):
 
 def add_teamparticipations(n=10):
 
+    cmd = """
+    CREATE TABLE IF NOT EXISTS "team_participation"
+    (
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "start_date" date NOT NULL,
+    "end_date" date NULL, 
+    "team" varchar(200) NOT NULL REFERENCES "team" ("name"),
+    "volunteer" integer NOT NULL REFERENCES "volunteer" ("id")
+    );
+    """
+
+    print(cmd)
+
+    cursor.execute(cmd)
+
     def create_teamparticipation():
 
         start_date = create_date()
         end_date = create_date(start_date)
 
-        volunteer_id_id = cursor.execute("select member_ptr_id from volunteer_volunteer order by random() limit 1").fetchone()[0]
-        team_name_id = cursor.execute("select name from volunteer_team order by random() limit 1").fetchone()[0]
+        volunteer = cursor.execute("SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        team = cursor.execute("SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
-        return (start_date, end_date, volunteer_id_id, team_name_id)
+        return (start_date, end_date, volunteer, team)
 
     for i in range(n):
 
         team_participation = create_teamparticipation()
 
         cmd = """
-        INSERT INTO volunteer_participation (start_date, end_date, volunteer_id_id, team_name_id) VALUES('%s', '%s', %d, '%s')
+        INSERT INTO team_participation (start_date, end_date, volunteer, team) VALUES('%s', '%s', %d, '%s')
         """ % team_participation
 
         print(cmd)
@@ -238,11 +357,23 @@ def add_teams(n=10):
         team_targets    = team_targets.split('\n')
         team_occupation = team_occupation.split('\n')
 
+    cmd = """
+    CREATE TABLE IF NOT EXISTS team 
+    (
+    "name" varchar(100) NOT NULL PRIMARY KEY,
+    "description" varchar(300) NOT NULL
+    );
+    """
+
+    print(cmd)
+
+    cursor.execute(cmd)
+
     for i in range(n):
         team = create_team(team_targets, team_occupation)
 
         cmd = """
-        INSERT INTO volunteer_team (name, description) VALUES('%s', '%s')
+        INSERT INTO team (name, description) VALUES('%s', '%s')
         """ % team
 
         print(cmd)
@@ -258,8 +389,8 @@ def add_eventparticipations(n=10):
 
         date = create_date()
         impressions = "I thought the event was " + create_string(10)
-        member = cursor.execute("SELECT id FROM member_member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        event = cursor.execute("SELECT id FROM event_event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        member = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         duration = 'null'
 
         return (date, duration, impressions, event, member)

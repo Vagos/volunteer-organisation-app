@@ -7,7 +7,9 @@
 
 <h2>Info</h2>
 
-{{ team.description }}
+<li>{{ team.description }}</li>
+
+<li>Best Volunteer: {{team.name}}</li>
 
 <h2>Members</h2>
 
@@ -23,10 +25,8 @@ This team has no members!
 
 <h2>Tasks</h2>
 
-These are tasks team members are occupied with.
-
 {% for task in tasks %}
-<li>{{ task.volunteer_name }} {{ task.volunteer_surname }}: {{task.task_name}}</li>
+<li><a href={% url 'volunteer:profile' task.volunteer_id%}>{{ task.volunteer_name }} {{ task.volunteer_surname }}</a>: <a href={%url 'volunteer:task' task.task_id%}>{{task.task_name}}</a></li>
 
 {% empty %}
 

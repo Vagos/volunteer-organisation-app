@@ -8,12 +8,21 @@
 
 <ul>
     <li><b>Event: </b><a href={% url 'event:details' task.event_id %}>{{task.event_name}}</a></li>
-    <li><b>Creator: </b> </li>
+    <li><b>Creator: </b><a href={% url 'volunteer:profile' task.creator_id%}>{{task.creator_name}} {{task.creator_surname}}</a></li>
     <li><b>Difficulty: </b> {{task.difficulty}}</li>
+    <li><b>Completed: </b> {{task.completed}}</li>
 </ul>
 
 <div style="text-align: center;">
-<button>Work on this Task!</button>
+    <form action={% url 'volunteer:task' task.id %} method="post">
+        {% csrf_token %}
+        <button type="submit" name="send">Join Task</button>
+    </form>
+
+    <form action={% url 'volunteer:task_done' task.id %} method="post">
+        {% csrf_token %}
+        <button type="submit" name="send">Completed</button>
+    </form>
 </div>
 
 <h4>Volunteers working on this task</h4>
@@ -23,7 +32,7 @@
 <a href={%url 'volunteer:profile' volunteer.volunteer_id%}>{{volunteer.volunteer_name}} {{volunteer.volunteer_surname}}</a>
 
 <p>
-    Task evaluation.
+    Task evaluation. (not yet added)
 </p>
 
 </div>

@@ -1,5 +1,7 @@
 from django.shortcuts import render
+from django.http.response import Http404, HttpResponseRedirect
 from django.db import connection
+from django.urls import reverse
 
 # Volunteer views
 
@@ -47,7 +49,7 @@ def team(request, team_name):
 
         members = fetchall(cursor)
 
-        cursor.execute("""SELECT volunteer_name, volunteer_surname, task_name 
+        cursor.execute("""SELECT *
         FROM volunteer_task_assigned AS VTA WHERE VTA.volunteer_id IN 
         (SELECT volunteer_id FROM team_members WHERE team_name = '%s')
         """ % (team_name))
@@ -63,11 +65,24 @@ def team(request, team_name):
 def task(request, task_id):
 
     with connection.cursor() as cursor:
+
+        if request.POST: # Ask if this is correct.
+
+            cursor.execute("SELECT completed from volunteer_task WHERE id = %d" % (task_id))
+
+            is_completed = fetchall(cursor)[0].completed
+
+            if not is_completed:
+
+                cursor.execute("""
+                INSERT INTO volunteer_workson (evaluation, task_id_id, volunteer_id_id) VALUES('%s', %d, %d)
+                """ % ("no evaluation", task_id, 2))
     
         cursor.execute("""
-        SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty 
-        FROM volunteer_task AS VT JOIN event_event AS E 
-        ON VT.event_id = E.id
+        SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty, VT.creator_id, VT.completed,
+        M.name as creator_name, M.surname as creator_surname 
+        FROM volunteer_task AS VT JOIN event_event AS E
+        ON VT.event_id = E.id JOIN member_member as M ON M.id = VT.creator_id
         WHERE VT.id = %d
         """ % (task_id))
 
@@ -83,12 +98,38 @@ def task(request, task_id):
 
     return render(request, "volunteer/task.html", context=context)
 
+def task_done(request, task_id):
+
+    with connection.cursor() as cursor:
+
+        cursor.execute("""
+        UPDATE volunteer_task SET completed = True
+        WHERE id = %d
+        """ % (task_id))
+
+    return HttpResponseRedirect(reverse("volunteer:task", args=(task_id,)))
+
+
 def profile(request, volunteer_id):
 
     with connection.cursor() as cursor:
 
         cursor.execute("""
-        SELECT name, surname, join_date FROM member_member, volunteer_volunteer
+        SELECT name, surname, join_date, 
+        (
+            SELECT COUNT(*) FROM volunteer_workson WHERE volunteer_id_id = M.id
+        ) AS tasks_working_on, 
+        (
+            SELECT category_id FROM 
+            (
+                SELECT E.category_id, COUNT(*) as event_cnt FROM volunteer_task_assigned as VTA, volunteer_task as VT, event_event as E 
+                WHERE VTA.volunteer_id = M.id AND VT.id = VTA.task_id AND E.id = VT.event_id 
+                GROUP BY E.category_id
+                ORDER BY event_cnt DESC LIMIT 1
+            )
+        ) AS favorite_event_category
+
+        FROM member_member as M, volunteer_volunteer AS V
         WHERE id = %d
         """ % (volunteer_id))
 

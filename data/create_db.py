@@ -31,93 +31,91 @@ with open(base + "/tasks.txt", "r") as tasks_file:
 def create_eventCategory():
 
     table_title = "event_category"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE" + table_title
-        sql +=  "(name VARCHAR(255) DEFAULT NOT NULL PRIMARY KEY)"
-        print(sql)
-        cursor.execute(sql)
+
+    sql = "CREATE TABLE" + table_title
+    sql +=  "(name VARCHAR(255) NOT NULL PRIMARY KEY);"
+
+    print(sql)
+    cursor.execute(sql)
 
 
 
 def create_income():
 
     table_title = "income"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """ ("id" INTEGER DEFAULT NOT NULL AUTOINCREMENT,
-                    "value" INTEGER DEFAULT NOT NULL,
-                    "date" DATE DEFAULT NOT NULL,
-                    "member_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "member_id_FK" FOREIGN KEY("member_id") REFERENCES "event_participation"("member_id") ON DELETE SET NULL ON UPDATE CASCADE,
-                    PRIMARY KEY("id") )"""
 
-        print(sql)
-        cursor.execute(sql)
+    sql = "CREATE TABLE IF NOT EXISTS" + table_title
+    sql += """ ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                "value" INTEGER NOT NULL DEFAULT '1',
+                "date" DATE NOT NULL DEFAULT '',
+                "member_id" INTEGER NOT NULL,
+                CONSTRAINT "member_id_FK" FOREIGN KEY("member_id") REFERENCES "event_participation"("member_id") ON DELETE SET NULL ON UPDATE CASCADE
+                 );"""
+
+    print(sql)
+    cursor.execute(sql)
 
 def create_sale():
 
     table_title = "sale"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("ammount" INTEGER DEFAULT NOT NULL,
-                   "item_name" VARCHAR(20) DEFAULT NOT NULL,
-                   "income_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                   )"""
-        print(sql)
-        cursor.execute(sql)
+    sql = "CREATE TABLE IF NOT EXISTS" + table_title
+    sql += """("ammount" INTEGER NOT NULL DEFAULT '1',
+               "item_name" VARCHAR(20) NOT NULL DEFAULT '',
+               "income_id" INTEGER NOT NULL,
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
+               );"""
+    print(sql)
+    cursor.execute(sql)
 
 def create_service():
 
     table_title = "service"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("description" TEXT DEFAULT NOT NULL,
-                   "income_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                   )"""
-        print(sql)
-        cursor.execute(sql)
+
+    sql = "CREATE TABLE IF NOT EXISTS" + table_title
+    sql += """("description" TEXT NOT NULL DEFAULT '',
+               "income_id" INTEGER NOT NULL,
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
+               );"""
+    print(sql)
+    cursor.execute(sql)
 
 def create_donation():
 
     table_title = "donation"
     with connection.cursor() as cursor:
         sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("message" TEXT DEFAULT NOT NULL,
-                   "income_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                    )"""
+        sql += """("message" TEXT DEFAULT NULL DEFAULT '',
+                   "income_id" INTEGER NOT NULL,
+                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
+                    );"""
         print(sql)
         cursor.execute(sql)
 
 def create_income_to_expense():
 
     table_title = "income_to_expense"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("income_id" INTEGER DEFAULT NOT NULL,
-                   "expense_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-                    CONSTRAINT "expense_id_FK" FOREIGN KEY("expense_id") REFERENCES "expense"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                    )"""
-        print(sql)
-        cursor.execute(sql)
+    sql = "CREATE TABLE IF NOT EXISTS" + table_title
+    sql += """("income_id" INTEGER NOT NULL,
+               "expense_id" INTEGER NOT NULL,
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+                CONSTRAINT "expense_id_FK" FOREIGN KEY("expense_id") REFERENCES "expense"("id") ON DELETE SET NULL ON UPDATE CASCADE
+                );"""
+    print(sql)
+    cursor.execute(sql)
 
 def create_expense():
 
     table_title = "expense"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("id" INTEGER DEFAULT NOT NULL AUTOINCREMENT,
-                   "date" DATE DEFAULT NOT NULL,
-                   "value" INTEGER DEFAULT NOT NULL,
-                   "description" TEXT DEFAULT NULL,
-                   "event_id" INTEGER DEFAULT NOT NULL,
-                    CONSTRAINT "event_id_FK" FOREIGN KEY("event_id") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                    )"""
-        print(sql)
-        cursor.execute(sql)
+    sql = "CREATE TABLE IF NOT EXISTS" + table_title
+    sql += """("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+               "date" DATE NOT NULL,
+               "value" INTEGER NOT NULL DEFAULT '',
+               "description" TEXT DEFAULT NULL,
+               "event_id" INTEGER NOT NULL,
+                CONSTRAINT "event_id_FK" FOREIGN KEY("event_id") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
+                );"""
+    print(sql)
+    cursor.execute(sql)
 
 
 
@@ -253,7 +251,7 @@ def add_events():
 
     cursor.execute(" DROP TABLE IF EXISTS event;")
 
-    sql = """   
+    sql = """
 
                 CREATE TABLE IF NOT EXISTS "event"
                 (
@@ -267,10 +265,10 @@ def add_events():
                 "organiser" integer DEFAULT NULL ,
                 CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
                 CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                )"""
+                );"""
     print(sql)
     cursor.execute(sql)
-    
+
     def create_event(categories, verbs, causes, places):
 
         event_name = random.choice(verbs) + ' ' + random.choice(causes)
@@ -504,7 +502,7 @@ def add_eventparticipations(n=10):
 
     cursor.execute("DROP TABLE IF EXISTS event_participation")
 
-    sql = "CREATE TABLE IF NOT EXISTS event_participation"  
+    sql = "CREATE TABLE IF NOT EXISTS event_participation"
     sql += """ (
                 "member" INTEGER NOT NULL,
                 "event" INTEGER NOT NULL,
@@ -513,7 +511,7 @@ def add_eventparticipations(n=10):
                 CONSTRAINT "member_id_FK" FOREIGN KEY("member") REFERENCES "member"("id") ON DELETE SET NULL ON UPDATE CASCADE,
                 CONSTRAINT "event_id_FK" FOREIGN KEY("event") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE,
                 PRIMARY KEY("member", "event")
-            )"""
+            );"""
 
     print(sql)
     cursor.execute(sql)
@@ -536,7 +534,7 @@ def add_eventparticipations(n=10):
         try:
             print(cmd)
             cursor.execute(cmd)
-        except: 
+        except:
             pass
 
 def add_incomes(n=10):

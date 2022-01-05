@@ -502,6 +502,8 @@ def add_teams(n=10):
 
 def add_eventparticipations(n=10):
 
+    cursor.execute("DROP TABLE IF EXISTS event_participation")
+
     sql = "CREATE TABLE IF NOT EXISTS event_participation"  
     sql += """ (
                 "member" INTEGER NOT NULL,
@@ -518,24 +520,24 @@ def add_eventparticipations(n=10):
 
     def create_eventparticipation():
 
-        date = create_date()
         impressions = "I thought the event was " + create_string(10)
         member = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        duration = 'null'
 
-        return (date, duration, impressions, event, member)
+        return (member, event, impressions)
 
     for i in range(n):
         event_participation = create_eventparticipation()
 
         cmd = """
-        INSERT INTO event_participation (event, member, impressions) VALUES('%s', '%s', '%s', '%s', '%s')
+        INSERT INTO event_participation (event, member, impressions) VALUES('%s', '%s', '%s')
         """ % event_participation
 
-        print(cmd)
-
-        cursor.execute(cmd)
+        try:
+            print(cmd)
+            cursor.execute(cmd)
+        except: 
+            pass
 
 def add_incomes(n=10):
 

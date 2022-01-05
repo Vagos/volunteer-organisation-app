@@ -149,6 +149,8 @@ def create_expense():
                    "event_id" INTEGER DEFAULT NOT NULL,
                     CONSTRAINT "event_id_FK" FOREIGN KEY("event_id") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
                     )"""
+        print(sql)
+        cursor.execute(sql)
 
 
 
@@ -219,10 +221,10 @@ def create_income():
     pass
 
 def add_members(n=10):
-    
+
     cmd = """
     CREATE TABLE IF NOT EXISTS "member" (
-    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT, 
+    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     "fname" varchar(30) NOT NULL,
     "lname" varchar(30) NOT NULL,
     "date_of_birth" date DEFAULT NULL,
@@ -264,7 +266,7 @@ def add_volunteers(n=10):
 
     for i in range(n):
         volunteer = create_volunteer()
-        
+
         cmd = """
         INSERT INTO volunteer VALUES('%s', '%s');
         """ % volunteer
@@ -290,7 +292,7 @@ def add_event_categories():
     for c in event_categories:
         cmd = """
         INSERT INTO event_eventcategory (name) values('%s');
-        """ 
+        """
         print(cmd)
         # cursor.execute(cmd)
 
@@ -308,7 +310,7 @@ def add_employees(n=10):
 
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS  "employee" 
+    CREATE TABLE IF NOT EXISTS  "employee"
     (
         "id" int NOT NULL,
         "compensation" int NOT NULL DEFAULT 0,
@@ -346,11 +348,11 @@ def add_employees(n=10):
 def add_tasks(n=10):
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS "task" 
+    CREATE TABLE IF NOT EXISTS "task"
     (
     "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     "name" varchar(20) NOT NULL,
-    "due_date" date NOT NULL, 
+    "due_date" date NOT NULL,
     "entry_date" date DEFAULT NULL,
     "difficulty" smallint NOT NULL DEFAULT '1',
     "completed" book NOT NULL,
@@ -376,7 +378,7 @@ def add_tasks(n=10):
 def add_workson(n=10):
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS  "works_on" 
+    CREATE TABLE IF NOT EXISTS  "works_on"
     (
     volunteer integer NOT NULL,
     task integer NOT NULL,
@@ -418,7 +420,7 @@ def add_teamparticipations(n=10):
     (
     "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     "start_date" date NOT NULL,
-    "end_date" date NULL, 
+    "end_date" date NULL,
     "team" varchar(200) NOT NULL REFERENCES "team" ("name"),
     "volunteer" integer NOT NULL REFERENCES "volunteer" ("id")
     );
@@ -486,7 +488,7 @@ def add_teams(n=10):
         team_occupation = team_occupation.split('\n')
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS team 
+    CREATE TABLE IF NOT EXISTS team
     (
     "name" varchar(100) NOT NULL PRIMARY KEY,
     "description" varchar(300) NOT NULL
@@ -589,7 +591,7 @@ def main():
     add_eventparticipations()
 
     CreateViews()
-    
+
 
 main()
 

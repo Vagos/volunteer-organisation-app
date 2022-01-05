@@ -37,40 +37,7 @@ def create_eventCategory():
         print(sql)
         cursor.execute(sql)
 
-def create_event():
 
-    table_title = "event"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("id" integer DEFAULT NOT NULL AUTOINCREMENT,
-                    "name" VARCHAR(20) DEFAULT NOT NULL ,
-                    "start_date" DATE DEFAULT NOT NULL ,
-                    "end_date" DATE DEFAULT NULL ,
-                    "place" VARCHAR(20) DEFAULT NULL ,
-                    "description" VARCHAR(255) DEFAULT NULL ,
-                    "category" VARCHAR(20) DEFAULT NOT NULL ,
-                    "organiser" integer DEFAULT NOT NULL ,
-                    CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "enent_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
-                    CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-                    PRIMARY KEY("id")
-                    )"""
-        print(sql)
-        cursor.execute(sql)
-
-def create_eventparticipation():
-
-    table_title = "event_participation"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """ ("member_id" INTEGER DEFAULT NOT NULL,
-                    "event_id" INTEGER DEFAULT NOT NULL,
-                    "impressions" TEXT DEFAULT NULL,
-                    CONSTRAINT "member_id_FK" FOREIGN KEY("member_id") REFERENCES "member"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-                    CONSTRAINT "event_id_FK" FOREIGN KEY("event_id") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-                    PRIMARY KEY("member_id", "event_id")
-                )"""
-        print(sql)
-        cursor.execute(sql)
 
 def create_income():
 
@@ -177,20 +144,6 @@ def create_date(previous_date = "2015-1-1"):
 
     return "%d-%d-%d" % (y, m, d)
 
-def create_event(categories, verbs, causes, places):
-
-    event_name = random.choice(verbs) + ' ' + random.choice(causes)
-
-    start_date = create_date()
-    end_date = create_date(start_date)
-
-    place = random.choice(places)
-    description = create_string(20)
-    category = random.choice(categories)
-
-    return (event_name, start_date, end_date, place, description, category)
-
-
 
 def create_team(targets, occupation):
     team_name = random.choice(targets) + ' ' + random.choice(occupation)
@@ -295,10 +248,44 @@ def add_event_categories():
         # cursor.execute(cmd)
 
 def add_events():
+
+    cursor.execute(" DROP TABLE IF EXISTS event;")
+
+    sql = """   
+
+                CREATE TABLE IF NOT EXISTS "event"
+                (
+                "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+                "name" VARCHAR(20) NOT NULL ,
+                "start_date" DATE NOT NULL ,
+                "end_date" DATE DEFAULT NULL ,
+                "place" VARCHAR(20) DEFAULT NULL ,
+                "description" VARCHAR(255) NOT NULL DEFAULT '',
+                "category" VARCHAR(20) DEFAULT NULL,
+                "organiser" integer DEFAULT NULL ,
+                CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
+                CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
+                )"""
+    print(sql)
+    cursor.execute(sql)
+    
+    def create_event(categories, verbs, causes, places):
+
+        event_name = random.choice(verbs) + ' ' + random.choice(causes)
+
+        start_date = create_date()
+        end_date = create_date(start_date)
+
+        place = random.choice(places)
+        description = create_string(20)
+        category = random.choice(categories)
+
+        return (event_name, start_date, end_date, place, description, category)
+
     for i in range(10):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
 
-        cmd = """INSERT INTO event_event (name, start_date, end_date, place, description, category_id)
+        cmd = """INSERT INTO event (name, start_date, end_date, place, description, category)
                values('%s', '%s', '%s', '%s', '%s', '%s')""" % event
 
         print(cmd)
@@ -513,6 +500,20 @@ def add_teams(n=10):
 
 def add_eventparticipations(n=10):
 
+    sql = "CREATE TABLE IF NOT EXISTS event_participation"  
+    sql += """ (
+                "member" INTEGER NOT NULL,
+                "event" INTEGER NOT NULL,
+                "impressions" TEXT DEFAULT NULL,
+
+                CONSTRAINT "member_id_FK" FOREIGN KEY("member") REFERENCES "member"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+                CONSTRAINT "event_id_FK" FOREIGN KEY("event") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+                PRIMARY KEY("member", "event")
+            )"""
+
+    print(sql)
+    cursor.execute(sql)
+
     def create_eventparticipation():
 
         date = create_date()
@@ -527,7 +528,7 @@ def add_eventparticipations(n=10):
         event_participation = create_eventparticipation()
 
         cmd = """
-        INSERT INTO volunteer_eventparticipation (date, duration, impressions, event_id_id, member_id_id) VALUES('%s', '%s', '%s', '%s', '%s')
+        INSERT INTO event_participation (event, member, impressions) VALUES('%s', '%s', '%s', '%s', '%s')
         """ % event_participation
 
         print(cmd)

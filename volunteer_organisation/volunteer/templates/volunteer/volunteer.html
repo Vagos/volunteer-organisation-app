@@ -12,10 +12,23 @@
     <li><b>Favorite Category</b>: {{volunteer.favorite_event_category}}</li>
 </ul>
 
-<h4>Current Tasks: </h4>
+<h3>Current Tasks</h3>
 
 {% for task in tasks %}
 <li><a href={%url 'volunteer:task' task.task_id%}>{{task.task_name}}</a></li>
+
+{%empty%}
+No tasks!
 {% endfor %}
+
+<h3>Organised Events</h3>
+
+{% for event in organised_events %}
+<li><a href={%url 'event:details' event.id%}>{{event.name}}</a></li>
+
+{%empty%}
+No events!
+{% endfor %}
+
 
 {% endblock content %}

@@ -4,9 +4,45 @@
 
 {% block content%}
 
-<h1></h1>
+<h2>Recent Transactions</h2>
 
-<h2>Transactions</h2>
+<h3>Expenses</h3>
+
+<table style="width:100%; border:1px; border-color:black; border-collapse: collapse;">
+    <tr>
+        <th>Date</th>
+        <th>Ammount</th>
+        <th>Event</th>
+    </tr>
+
+    {%for expense in expenses%}
+    <tr>
+        <td>{{expense.date}}</td>
+        <td>${{expense.value}}</td>
+        <td>{{expense.event}}</td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+<h3>Incomes</h3>
+
+<table style="width: 100%;">
+    <tr>
+        <th>Date</th>
+        <th>Value</th>
+        <th>Member</th>
+    </tr>
+
+    {% for income in incomes %}
+    <tr>
+        <td> {{income.date}} </td>
+        <td> {{income.value}} </td>
+        <td> {{income.participation}} </td>
+    </tr>
+    {% endfor %}
+</table>
+
 
 <h2>Event Management</h2>
 
@@ -29,7 +65,7 @@
 <label for="category">Event Category:</label>
 <select id="category" name="category">
 {% for category in event_categories %}
-<option value={{category.category_name}}>{{category.category_name}}</option>
+<option value={{category.name}}>{{category.name}}</option>
 {% endfor %}
 </select>
 <br>

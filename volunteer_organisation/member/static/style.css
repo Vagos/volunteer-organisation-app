@@ -57,3 +57,7 @@ li a:hover{
 .navbar ul li a { text-decoration: none;  color: var(--text-color); }
 .navbar ul li a:hover { text-decoration: none; color: var(--bg-color); background-color: var(--main-color); }
 .navbar ul li.page_title { text-align: left; margin-left: 10px; float: left; font-weight: bold; color: var(--main-color) }
+
+table, th, td {
+  border:1px solid black;
+}

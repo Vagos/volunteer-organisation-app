@@ -20,7 +20,7 @@ End Date: {{ event.end_date }}
 
 <ol>
     {%for participant in participants %}
-    <li>{{participant.name}} {{participant.surname}}</li>
+    <li><a href={% url 'volunteer:profile' participant.id %}>{{participant.name}} {{participant.surname}}</a></li>
     {%endfor%}
 </ol>
 

@@ -18,7 +18,7 @@ def index(request):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT name, id FROM event_event WHERE end_date > date('now')")
+        cursor.execute("SELECT name, id FROM event WHERE end_date > date('now')")
 
         events = fetchall(cursor)
 
@@ -53,7 +53,7 @@ def authenticate(request, username, password):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM member_member") # WHERE name = %s AND password = %s" % (username, password))
+        cursor.execute("SELECT * FROM member") # WHERE name = %s AND password = %s" % (username, password))
 
         r = cursor.fetchone()
 
@@ -65,4 +65,4 @@ def add_user(username, password):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("INSERT INTO member_member(name, surname, password) VALUES ('%s', '%s', '%s')" % (username, "lastnametest", password))
+        cursor.execute("INSERT INTO member(name, surname) VALUES ('%s', '%s')" % (username, "lastnametest"))

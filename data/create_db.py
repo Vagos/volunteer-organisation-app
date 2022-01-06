@@ -28,69 +28,6 @@ with open(base + "/tasks.txt", "r") as tasks_file:
     task_targets = task_targets.split('\n')
 
 
-def create_eventCategory():
-
-    table_title = "event_category"
-
-    sql = "CREATE TABLE" + table_title
-    sql +=  "(name VARCHAR(255) NOT NULL PRIMARY KEY);"
-
-    print(sql)
-    cursor.execute(sql)
-
-
-
-def create_income():
-
-    table_title = "income"
-
-    sql = "CREATE TABLE IF NOT EXISTS" + table_title
-    sql += """ ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                "value" INTEGER NOT NULL DEFAULT '1',
-                "date" DATE NOT NULL DEFAULT '',
-                "member_id" INTEGER NOT NULL,
-                CONSTRAINT "member_id_FK" FOREIGN KEY("member_id") REFERENCES "event_participation"("member_id") ON DELETE SET NULL ON UPDATE CASCADE
-                 );"""
-
-    print(sql)
-    cursor.execute(sql)
-
-def create_sale():
-
-    table_title = "sale"
-    sql = "CREATE TABLE IF NOT EXISTS" + table_title
-    sql += """("ammount" INTEGER NOT NULL DEFAULT '1',
-               "item_name" VARCHAR(20) NOT NULL DEFAULT '',
-               "income_id" INTEGER NOT NULL,
-                CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
-               );"""
-    print(sql)
-    cursor.execute(sql)
-
-def create_service():
-
-    table_title = "service"
-
-    sql = "CREATE TABLE IF NOT EXISTS" + table_title
-    sql += """("description" TEXT NOT NULL DEFAULT '',
-               "income_id" INTEGER NOT NULL,
-                CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
-               );"""
-    print(sql)
-    cursor.execute(sql)
-
-def create_donation():
-
-    table_title = "donation"
-    with connection.cursor() as cursor:
-        sql = "CREATE TABLE IF NOT EXISTS" + table_title
-        sql += """("message" TEXT DEFAULT NULL DEFAULT '',
-                   "income_id" INTEGER NOT NULL,
-                    CONSTRAINT "income_id_FK" FOREIGN KEY("income_id") REFERENCES "income"("id") ON UPDATE CASCADE
-                    );"""
-        print(sql)
-        cursor.execute(sql)
-
 def create_income_to_expense():
 
     table_title = "income_to_expense"
@@ -102,25 +39,6 @@ def create_income_to_expense():
                 );"""
     print(sql)
     cursor.execute(sql)
-
-def create_expense():
-
-    table_title = "expense"
-    sql = "CREATE TABLE IF NOT EXISTS" + table_title
-    sql += """("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-               "date" DATE NOT NULL,
-               "value" INTEGER NOT NULL DEFAULT '',
-               "description" TEXT DEFAULT NULL,
-               "event_id" INTEGER NOT NULL,
-                CONSTRAINT "event_id_FK" FOREIGN KEY("event_id") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                );"""
-    print(sql)
-    cursor.execute(sql)
-
-
-
-
-
 
 
 def create_string(l=20):
@@ -161,8 +79,8 @@ def create_task(verbs, targets):
     difficulty = random.randint(1, 10)
     completed = False
 
-    creator = cursor.execute("select member_ptr_id from volunteer_employee order by random() limit 1").fetchone()[0]
-    event = cursor.execute("select id from event_event order by random() limit 1").fetchone()[0]
+    creator = cursor.execute("select id from employee order by random() limit 1").fetchone()[0]
+    event = cursor.execute("select id from event order by random() limit 1").fetchone()[0]
 
     return (name, due_date, entry_date, difficulty, completed, creator, event)
 
@@ -176,8 +94,8 @@ def add_members(n=10):
     cmd = """
     CREATE TABLE IF NOT EXISTS "member" (
     "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "fname" varchar(30) NOT NULL,
-    "lname" varchar(30) NOT NULL,
+    "name" varchar(30) NOT NULL,
+    "surname" varchar(30) NOT NULL,
     "date_of_birth" date DEFAULT NULL,
     "email" varchar(50) DEFAULT NULL,
     "city_of_residence" varchar(50) NULL,
@@ -190,10 +108,10 @@ def add_members(n=10):
 
     for i in range(n):
         username = create_username(member_names, member_surnames)
-        cmd = "INSERT INTO member (fname, lname) VALUES('%s', '%s');" % username
-        print(cmd)
+        cmd = "INSERT INTO member (name, surname) VALUES('%s', '%s');" % username
 
-    cursor.execute(cmd)
+        print(cmd)
+        cursor.execute(cmd)
 
 def add_volunteers(n=10):
 
@@ -232,20 +150,20 @@ def add_volunteers(n=10):
 def add_event_categories():
 
     cmd = """
-    DROP TABLE IF EXISTS event_category;
-
     CREATE TABLE IF NOT EXISTS "event_category"
     ("name" varchar(30) NOT NULL PRIMARY KEY);
     """
 
     print(cmd)
+    cursor.execute(cmd)
 
     for c in event_categories:
         cmd = """
-        INSERT INTO event_eventcategory (name) values('%s');
-        """
+        INSERT INTO event_category (name) values('%s');
+        """ % (c,)
+
         print(cmd)
-        # cursor.execute(cmd)
+        cursor.execute(cmd)
 
 def add_events():
 
@@ -280,13 +198,15 @@ def add_events():
         description = create_string(20)
         category = random.choice(categories)
 
-        return (event_name, start_date, end_date, place, description, category)
+        organiser = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (event_name, start_date, end_date, place, description, category, organiser)
 
     for i in range(10):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
 
-        cmd = """INSERT INTO event (name, start_date, end_date, place, description, category)
-               values('%s', '%s', '%s', '%s', '%s', '%s')""" % event
+        cmd = """INSERT INTO event (name, start_date, end_date, place, description, category, organiser)
+               values('%s', '%s', '%s', '%s', '%s', '%s', %d)""" % event
 
         print(cmd)
         cursor.execute(cmd)
@@ -295,7 +215,7 @@ def add_employees(n=10):
 
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS  "employee"
+    CREATE TABLE IF NOT EXISTS "employee"
     (
         "id" int NOT NULL,
         "compensation" int NOT NULL DEFAULT 0,
@@ -309,6 +229,8 @@ def add_employees(n=10):
 
     print(cmd)
 
+    cursor.execute(cmd)
+
     def create_employee():
 
         _id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
@@ -321,7 +243,7 @@ def add_employees(n=10):
         employee = create_employee()
         try:
 
-            cmd = "INSERT INTO volunteer_employee VALUES(%d, %d, '%s')" % employee
+            cmd = "INSERT INTO employee VALUES(%d, %d, '%s')" % employee
 
             print(cmd)
 
@@ -367,6 +289,7 @@ def add_workson(n=10):
     (
     volunteer integer NOT NULL,
     task integer NOT NULL,
+    evaluation text NOT NULL DEFAULT '',
 
     PRIMARY KEY ("volunteer", "task"),
     CONSTRAINT "works_on_fk0" FOREIGN KEY("volunteer") REFERENCES "volunteer" ("id") ON DELETE CASCADE  ON UPDATE CASCADE,
@@ -390,13 +313,15 @@ def add_workson(n=10):
         workson = create_workson()
 
         cmd = """
-        INSERT INTO volunteer_workson (evaluation, task_id_id, volunteer_id_id)
+        INSERT INTO works_on (evaluation, task, volunteer)
         VALUES('%s', %d, %d)
         """ % workson
-
-        print(cmd)
-
-        cursor.execute(cmd)
+        
+        try:
+            print(cmd)
+            cursor.execute(cmd)
+        except:
+            pass
 
 def add_teamparticipations(n=10):
 
@@ -443,8 +368,8 @@ def add_eventorganisations(n=10):
 
         reason = "Event created because " + create_string(20)
         entry_date = "DATE('now')" # This should be before the event's start date.
-        event_id_id = cursor.execute("SELECT id FROM event_event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        organiser_id_id = cursor.execute("SELECT member_ptr_id FROM volunteer_employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event_id_id = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        organiser_id_id = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (reason, entry_date, event_id_id, organiser_id_id)
 
@@ -504,13 +429,14 @@ def add_eventparticipations(n=10):
 
     sql = "CREATE TABLE IF NOT EXISTS event_participation"
     sql += """ (
+                "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 "member" INTEGER NOT NULL,
                 "event" INTEGER NOT NULL,
                 "impressions" TEXT DEFAULT NULL,
 
                 CONSTRAINT "member_id_FK" FOREIGN KEY("member") REFERENCES "member"("id") ON DELETE SET NULL ON UPDATE CASCADE,
                 CONSTRAINT "event_id_FK" FOREIGN KEY("event") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE,
-                PRIMARY KEY("member", "event")
+                UNIQUE ("member", "event")
             );"""
 
     print(sql)
@@ -539,12 +465,36 @@ def add_eventparticipations(n=10):
 
 def add_incomes(n=10):
 
-    def create_income():
-        participation = cursor.execute("SELECT id FROM volunteer_eventparticipation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        value = random.randint(1, 10000)
-        date = create_date() # this should be betwen the dates of the event participation
+    sql = "CREATE TABLE IF NOT EXISTS income"
+    sql += """ ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                "value" INTEGER NOT NULL DEFAULT '1',
+                "date" DATE NOT NULL DEFAULT '',
+                "participation" INTEGER NOT NULL,
+                CONSTRAINT "income_FK" FOREIGN KEY("participation") REFERENCES "event_participation"("id") ON DELETE SET NULL ON UPDATE CASCADE
+                 );"""
 
-        return (value, date)
+    print(sql)
+    cursor.execute(sql)
+
+    def create_income():
+
+        value = random.randint(1, 100000)
+        date = create_date()
+        participation = cursor.execute("SELECT id from event_participation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (value, date, participation)
+
+    for i in range(n):
+
+        income = create_income()
+
+        cmd = """
+INSERT INTO income (value, date, participation) VALUES('%s', '%s', %d)
+        """ % income
+
+        print(cmd)
+        cursor.execute(cmd)
+
 
 connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
 cursor = connection.cursor()
@@ -553,9 +503,9 @@ def CreateViews():
 
     cmd = """
     CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS
-    SELECT M.id, M.name, M.surname, VP.team_name_id
-    FROM volunteer_participation as VP, member_member as M
-    WHERE VP.volunteer_id_id = M.id;
+    SELECT M.id, M.name, M.surname, TP.team
+    FROM team_participation as TP, member as M
+    WHERE TP.volunteer = M.id;
     """
 
     print(cmd)
@@ -563,23 +513,139 @@ def CreateViews():
 
     cmd = """
     CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS
-    SELECT M.id, M.name, M.surname, VT.id, VT.name
-    FROM volunteer_task as VT, member_member as M, volunteer_workson as VW
-    WHERE VW.task_id_id = VT.id AND VW.volunteer_id_id = M.id;
+    SELECT M.id, M.name, M.surname, T.id, T.name
+    FROM task as T, member as M, works_on as W
+    WHERE W.task = T.id AND W.volunteer = M.id;
     """
 
     print(cmd)
     cursor.execute(cmd)
 
+
+def add_sales(n=10):
+
+    sql = "CREATE TABLE IF NOT EXISTS sale"
+    sql += """(
+               "income" INTEGER NOT NULL,
+               "ammount" INTEGER NOT NULL DEFAULT '1',
+               "item_name" VARCHAR(20) NOT NULL DEFAULT '',
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE ON DELETE CASCADE
+               );"""
+    print(sql)
+    cursor.execute(sql)
+
+    def create_sale():
+
+        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        ammount = random.randint(1, 100)
+        item_name = create_string(20)
+
+        return (income, ammount, item_name)
+
+    for i in range(n):
+
+        sale = create_sale()
+
+        cmd = """
+        INSERT INTO sale (income, ammount, item_name) VALUES(%d, %d, '%s')
+        """ % sale
+
+        print(cmd)
+        cursor.execute(cmd)
+
+def add_services(n=10):
+
+    sql = "CREATE TABLE IF NOT EXISTS service"
+    sql += """("description" TEXT NOT NULL DEFAULT '',
+               "income" INTEGER NOT NULL,
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE ON DELETE CASCADE
+               );"""
+    print(sql)
+    cursor.execute(sql)
+    
+    def create_service():
+
+        description = "This service is about " + create_string(10) 
+        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (description, income)
+
+    for i in range(n):
+
+        service = create_service()
+
+        cmd = "INSERT INTO service (description, income) VALUES('%s', %d)" % service
+
+        print(cmd)
+        cursor.execute(cmd)
+
+def add_donations(n=10):
+
+    sql = "CREATE TABLE IF NOT EXISTS donation" 
+    sql += """("message" TEXT DEFAULT NULL DEFAULT '',
+               "income" INTEGER NOT NULL,
+                CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE
+                );"""
+    print(sql)
+    cursor.execute(sql)
+
+
+    def create_donation():
+        
+        message = "Thanks! " + create_string(10)
+        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (message, income)
+
+    
+    for i in range(n):
+        donation = create_donation()
+        cmd = """INSERT INTO donation (message, income) VALUES('%s', %d)""" % donation
+
+        print(cmd)
+        cursor.execute(cmd)
+
+def add_expenses(n=10):
+
+    sql = "CREATE TABLE IF NOT EXISTS expense"
+    sql += """("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+               "date" DATE NOT NULL,
+               "value" INTEGER NOT NULL DEFAULT 1,
+               "description" TEXT DEFAULT NULL,
+               "event" INTEGER NOT NULL,
+                CONSTRAINT "event_id_FK" FOREIGN KEY("event") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
+                );"""
+    print(sql)
+    cursor.execute(sql)
+
+    def create_expense():
+
+        date = create_date()
+        value = random.randint(1, 10000)
+        description = "This expense is for " + create_string(20)
+        event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (date, value, description, event)
+
+
+    for i in range(n):
+
+        expense = create_expense()
+
+        cmd = "INSERT INTO expense (date, value, description, event) VALUES('%s', %d, '%s', %d)" % expense
+
+        print(cmd)
+        cursor.execute(cmd)
+
 def main():
 
     add_members()
 
-    add_event_categories()
-    add_events()
-
     add_volunteers()
     add_employees()
+
+    add_event_categories()
+    add_events()
 
     add_tasks()
 
@@ -587,9 +653,16 @@ def main():
     add_workson()
     add_teamparticipations()
 
-    add_eventorganisations()
+    # add_eventorganisations()
 
     add_eventparticipations()
+
+    add_expenses()
+
+    add_incomes()
+    add_donations()
+    add_services()
+    add_sales()
 
     CreateViews()
 

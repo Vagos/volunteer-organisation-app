@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.http.response import Http404, HttpResponseRedirect
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.urls import reverse
 
 # Volunteer views
@@ -20,11 +20,11 @@ def index(request):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM volunteer_team")
+        cursor.execute("SELECT * FROM team")
 
         teams = fetchall(cursor)
 
-        cursor.execute("""SELECT name FROM volunteer_task WHERE 
+        cursor.execute("""SELECT id, name FROM task WHERE 
                        DATE('now') - entry_date < 1
                        """)
 
@@ -39,7 +39,7 @@ def team(request, team_name):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM volunteer_team WHERE name = '%s'" % (team_name))
+        cursor.execute("SELECT * FROM team WHERE name = '%s'" % (team_name))
 
         team = fetchall(cursor)[0]
 
@@ -68,21 +68,26 @@ def task(request, task_id):
 
         if request.POST: # Ask if this is correct.
 
-            cursor.execute("SELECT completed from volunteer_task WHERE id = %d" % (task_id))
+            cursor.execute("SELECT completed from task WHERE id = %d" % (task_id))
 
             is_completed = fetchall(cursor)[0].completed
 
             if not is_completed:
-
-                cursor.execute("""
-                INSERT INTO volunteer_workson (evaluation, task_id_id, volunteer_id_id) VALUES('%s', %d, %d)
-                """ % ("no evaluation", task_id, 2))
+                try:
+                    cursor.execute("""
+                    INSERT INTO works_on (evaluation, task, volunteer) VALUES('%s', %d, %d)
+                    """ % ("no evaluation", task_id, 2))
+                except IntegrityError:
+                    pass
+        
+        # cursor.execute("SELECT * FROM task")
+        # print(fetchall(cursor))
     
         cursor.execute("""
-        SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty, VT.creator_id, VT.completed,
+        SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty, VT.creator as creator_id, VT.completed,
         M.name as creator_name, M.surname as creator_surname 
-        FROM volunteer_task AS VT JOIN event_event AS E
-        ON VT.event_id = E.id JOIN member_member as M ON M.id = VT.creator_id
+        FROM task AS VT JOIN event AS E
+        ON VT.event = E.id JOIN member as M ON M.id = VT.creator
         WHERE VT.id = %d
         """ % (task_id))
 
@@ -103,7 +108,7 @@ def task_done(request, task_id):
     with connection.cursor() as cursor:
 
         cursor.execute("""
-        UPDATE volunteer_task SET completed = True
+        UPDATE task SET completed = True
         WHERE id = %d
         """ % (task_id))
 
@@ -117,20 +122,20 @@ def profile(request, volunteer_id):
         cursor.execute("""
         SELECT name, surname, join_date, 
         (
-            SELECT COUNT(*) FROM volunteer_workson WHERE volunteer_id_id = M.id
+            SELECT COUNT(*) FROM works_on WHERE volunteer = M.id
         ) AS tasks_working_on, 
         (
-            SELECT category_id FROM 
+            SELECT category FROM 
             (
-                SELECT E.category_id, COUNT(*) as event_cnt FROM volunteer_task_assigned as VTA, volunteer_task as VT, event_event as E 
-                WHERE VTA.volunteer_id = M.id AND VT.id = VTA.task_id AND E.id = VT.event_id 
-                GROUP BY E.category_id
+                SELECT E.category, COUNT(*) as event_cnt FROM volunteer_task_assigned as VTA, task as VT, event as E 
+                WHERE VTA.volunteer_id = M.id AND VT.id = VTA.task_id AND E.id = VT.event
+                GROUP BY E.category
                 ORDER BY event_cnt DESC LIMIT 1
             )
         ) AS favorite_event_category
 
-        FROM member_member as M, volunteer_volunteer AS V
-        WHERE id = %d
+        FROM member as M LEFT JOIN volunteer AS V USING(id)
+        WHERE M.id = %d
         """ % (volunteer_id))
 
         volunteer = fetchall(cursor)[0]
@@ -141,6 +146,12 @@ def profile(request, volunteer_id):
 
         tasks = fetchall(cursor);
 
-        context = {"volunteer":volunteer, "tasks":tasks}
+        cursor.execute("""
+        SELECT E.id, E.name FROM event as E WHERE organiser = %d
+        """ % (volunteer_id))
+
+        organised_events = fetchall(cursor)
+
+    context = {"volunteer":volunteer, "tasks":tasks, "organised_events": organised_events}
 
     return render(request, "volunteer/volunteer.html", context=context)

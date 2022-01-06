@@ -17,12 +17,16 @@ def index(request):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT category_name FROM event_eventcategory")
+        cursor.execute("SELECT name FROM event_category")
         event_categories = fetchall(cursor)
 
-        print(event_categories)
+        cursor.execute("SELECT * FROM expense")
+        expenses = fetchall(cursor)
 
-    context = { "event_categories":event_categories }
+        cursor.execute("SELECT * FROM income")
+        incomes = fetchall(cursor)
+
+    context = { "event_categories":event_categories, "expenses":expenses, "incomes":incomes }
 
     return render(request, "event/index.html", context=context)
 
@@ -30,15 +34,15 @@ def details(request, event_id):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM event_event AS e WHERE e.id = %d" % event_id) 
+        cursor.execute("SELECT * FROM event AS e WHERE e.id = %d" % event_id) 
         event = fetchall(cursor)[0]
 
-        cursor.execute("SELECT id, name FROM volunteer_task WHERE event_id = %d" % event_id)
+        cursor.execute("SELECT id, name FROM task WHERE event = %d" % event_id)
         tasks = fetchall(cursor)
 
-        cursor.execute("""SELECT M.name, M.surname from volunteer_eventparticipation AS EP
-                        JOIN member_member AS M ON EP.member_id_id = M.id
-                       WHERE EP.event_id_id = %d""" % (event_id))
+        cursor.execute("""SELECT M.id, M.name, M.surname from event_participation AS EP
+                        JOIN member AS M ON EP.member = M.id
+                       WHERE EP.event = %d""" % (event_id))
         participants = fetchall(cursor)
 
     context = {"event":event, "tasks":tasks, "participants":participants}
@@ -63,17 +67,12 @@ def add_event(request):
 
         reason = request.POST["reason"]
 
-        cursor.execute("""INSERT INTO event_event 
-                       (name, start_date, end_date, place, description, category_id)
-                       VALUES('%s', '%s','%s','%s','%s','%s')
-                       """ % (event_name, start_date, end_date, place, description, 
-                              category))
-
-        # cursor.execute("""
-        # INSERT INTO volunteer_eventorganisation (reason, entry_date, event_id_id, organiser_id_id)
-        # """) # Need to add organiser
-
-
+        cursor.execute(""" INSERT INTO event 
+                           (name, start_date, end_date, place, description, category)
+                           VALUES('%s', '%s','%s','%s','%s','%s')
+                       """ % 
+                       (event_name, start_date, end_date, place, description, category))
+        
     return HttpResponseRedirect(reverse("event:index"))
 
 
@@ -85,7 +84,7 @@ def add_eventcategory(request):
 
         c_n = request.POST["name"]
 
-        cursor.execute("INSERT INTO event_eventcategory (category_name) VALUES ('%s')" \
+        cursor.execute("INSERT INTO event_category (name) VALUES ('%s')" \
                        % (c_n))
 
     return HttpResponseRedirect(reverse("event:index"))

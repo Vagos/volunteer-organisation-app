@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http.response import Http404, HttpResponseRedirect
 from django.db import connection, IntegrityError
 from django.urls import reverse
@@ -39,22 +39,30 @@ def team(request, team_name):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT * FROM team WHERE name = '%s'" % (team_name))
+        cursor.execute("""SELECT T.name, T.description, M.name as mgr_name, M.surname as mgr_surname, M.id as mgr_id 
+                       FROM team as T JOIN team_management as TM ON T.name = TM.team LEFT JOIN member as M on M.id = TM.employee
+                       WHERE T.name = '%s' AND TM.end_date is NULL ORDER BY TM.start_date DESC LIMIT 1""" % (team_name))
 
         team = fetchall(cursor)[0]
 
-        cursor.execute("""SELECT volunteer_id, name, surname FROM  team_members
-                       WHERE team_name = '%s' 
-                       """ % (team_name))
+        cursor.execute(f"""SELECT volunteer_id, name, surname, 
+        (
+            SELECT volunteer_id IN 
+            (SELECT id FROM active_team_members as ATM WHERE ATM.team_name = '{team_name}')
+        ) as active
+        FROM team_members WHERE team_name = '{team_name}' 
+                       """)
 
         members = fetchall(cursor)
 
         cursor.execute("""SELECT *
         FROM volunteer_task_assigned AS VTA WHERE VTA.volunteer_id IN 
-        (SELECT volunteer_id FROM team_members WHERE team_name = '%s')
+        (SELECT id FROM active_team_members WHERE team_name = '%s')
         """ % (team_name))
 
         tasks = fetchall(cursor)
+
+        
 
     context = {"team":team, "members":members, "tasks":tasks}
 
@@ -72,20 +80,19 @@ def task(request, task_id):
 
             is_completed = fetchall(cursor)[0].completed
 
+            print("WOW: ",request.session["id"])
+
             if not is_completed:
-                try:
-                    cursor.execute("""
-                    INSERT INTO works_on (evaluation, task, volunteer) VALUES('%s', %d, %d)
-                    """ % ("no evaluation", task_id, 2))
-                except IntegrityError:
-                    pass
+                cursor.execute("""
+                INSERT INTO works_on (evaluation, task, volunteer) VALUES('%s', %d, %s)
+                """ % ("no evaluation", task_id, request.session["id"]))
         
         # cursor.execute("SELECT * FROM task")
         # print(fetchall(cursor))
     
         cursor.execute("""
         SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty, VT.creator as creator_id, VT.completed,
-        M.name as creator_name, M.surname as creator_surname 
+        M.name as creator_name, M.surname as creator_surname, VT.due_date
         FROM task AS VT JOIN event AS E
         ON VT.event = E.id JOIN member as M ON M.id = VT.creator
         WHERE VT.id = %d
@@ -141,10 +148,17 @@ def profile(request, volunteer_id):
         volunteer = fetchall(cursor)[0]
 
         cursor.execute("""
-        SELECT task_name, task_id FROM volunteer_task_assigned
-        WHERE volunteer_id = %d """ % (volunteer_id))
+        SELECT task_name, task_id FROM volunteer_task_assigned JOIN task ON task_id = task.id
+        WHERE volunteer_id = %d AND task.completed = false """ % (volunteer_id))
 
         tasks = fetchall(cursor);
+
+        cursor.execute(f"""
+SELECT TM.team_name as name, (
+SELECT {volunteer_id} IN (SELECT id FROM active_team_members as ATM WHERE ATM.team_name = TM.team_name)
+) as active FROM team_members as TM WHERE volunteer_id = {volunteer_id}
+        """)
+        teams = fetchall(cursor)
 
         cursor.execute("""
         SELECT E.id, E.name FROM event as E WHERE organiser = %d
@@ -152,6 +166,18 @@ def profile(request, volunteer_id):
 
         organised_events = fetchall(cursor)
 
-    context = {"volunteer":volunteer, "tasks":tasks, "organised_events": organised_events}
+    context = {"volunteer":volunteer, "tasks":tasks, "organised_events": organised_events, "teams":teams}
 
     return render(request, "volunteer/volunteer.html", context=context)
+
+def join(request):
+
+    try:
+        with connection.cursor() as cursor:
+
+            cursor.execute("INSERT INTO volunteer (id, join_date) VALUES(%s, %s)" % (request.session["id"], "date('now')"))
+    except IntegrityError:
+        print("This user is already a volunteer!")
+
+    return redirect("volunteer:profile", volunteer_id = request.session["id"])
+

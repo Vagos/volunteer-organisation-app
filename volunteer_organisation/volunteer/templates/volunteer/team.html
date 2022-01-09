@@ -7,31 +7,36 @@
 
 <h2>Info</h2>
 
-<li>{{ team.description }}</li>
+<p>{{ team.description }}</p>
+<li><b>Team Manager:</b> <a href={% url 'volunteer:profile' team.mgr_id %}>{{ team.mgr_name }} {{team.mgr_surname}}</a></li>
 
-<li>Best Volunteer: {{team.name}}</li>
+<li><b>Best Volunteer:</b> {{team.name}}</li>
+
 
 <h2>Members</h2>
 
-
+<ul>
 {% for member in members %}
-<li><a href={% url 'volunteer:profile' member.volunteer_id%}>{{ member.name }} {{ member.surname }}</a></li>
+<li><a href={% url 'volunteer:profile' member.volunteer_id%}>{{ member.name }} {{ member.surname }}
+        {% if not member.active %}(Inactive){% endif %}
+    </a></li>
 
 {% empty %}
 
 This team has no members!
 
 {% endfor %}
+</ul>
 
 <h2>Tasks</h2>
+<ul>
+    {% for task in tasks %}
+        <li><a href={% url 'volunteer:profile' task.volunteer_id%}>{{ task.volunteer_name }} {{ task.volunteer_surname }}</a>: <a href={%url 'volunteer:task' task.task_id%}>{{task.task_name}}</a></li>
 
-{% for task in tasks %}
-<li><a href={% url 'volunteer:profile' task.volunteer_id%}>{{ task.volunteer_name }} {{ task.volunteer_surname }}</a>: <a href={%url 'volunteer:task' task.task_id%}>{{task.task_name}}</a></li>
+        {% empty %}
 
-{% empty %}
-
-No tasks are done by any team members!
-
-{% endfor %}
+        No tasks are done by any team members!
+    {% endfor %}
+</ul>
 
 {% endblock %}

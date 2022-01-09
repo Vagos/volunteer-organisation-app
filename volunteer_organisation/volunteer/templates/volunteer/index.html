@@ -3,9 +3,17 @@
 {% block title %}Volunteer{% endblock %}
 
 {% block content %}
+
+<div style="text-align: center;">
+<form action={% url 'volunteer:join' %} method="post">
+    {% csrf_token %}
+    <button type="submit" name="send">Become a Volunteer</button>
+</form>
+</div>
+
 <h2>All Teams</h2>
 
-<ul>
+<ul class="grid-list">
 {% for team in teams %}
 
 <li> <a href={% url 'volunteer:team' team.name %}> {{team.name}} </a> </li>
@@ -15,13 +23,13 @@
 
 <h2>Recent Tasks</h2>
 
-<ol>
+<ul class="grid-list">
 {% for task in recent_tasks %}
 
 <li><a href={% url 'volunteer:task' task.id %}>{{ task.name }}</a></li>
 
 {% endfor %}
-</ol>
+</ul>
 
 {% endblock content %}
 

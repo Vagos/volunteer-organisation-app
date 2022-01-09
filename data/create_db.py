@@ -57,10 +57,10 @@ def create_date(previous_date = "2015-1-1"):
     p_y, p_m, p_d = (int(i) for i in previous_date.split('-'))
 
     y = random.randint(p_y, 2022)
-    m = random.randint(p_m, 12)
-    d = random.randint(p_d, 28 if m == 2 else 30)
+    m = random.randint(p_m if y == p_y else 1, 12)
+    d = random.randint(p_d if m == p_m else 1, 28 if m == 2 else 30)
 
-    return "%d-%d-%d" % (y, m, d)
+    return "%s-%s-%s" % (y, str(m).zfill(2), str(d).zfill(2))
 
 
 def create_team(targets, occupation):
@@ -85,9 +85,40 @@ def create_task(verbs, targets):
     return (name, due_date, entry_date, difficulty, completed, creator, event)
 
 
+def add_team_managements(n=10):
 
-def create_income():
-    pass
+    sql = """
+CREATE TABLE IF NOT EXISTS team_management 
+(
+"employee" INT NOT NULL,
+"team" varchar(100),
+"start_date" DATE NOT NULL,
+"end_date" DATE DEFAULT NULL,
+
+CONSTRAINT "team_fk" FOREIGN KEY("team") REFERENCES "team"("name") ON DELETE CASCADE ON UPDATE CASCADE,
+CONSTRAINT "employee_fk" FOREIGN KEY("employee") REFERENCES "employee"("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+"""
+
+    print(sql)
+    cursor.execute(sql)
+
+    def create_team_management():
+
+        start_date = create_date()
+        end_date = create_date() if random.random() < 0.5 else 'NULL'
+        employee = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        team = cursor.execute("SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+        return (employee, team, start_date, end_date)
+
+    for i in range(n):
+
+        team_management = create_team_management()
+        sql = """INSERT INTO team_management (employee, team, start_date, end_date) VALUES(%d, '%s', '%s', %s)""" % team_management
+        print(sql)
+        cursor.execute(sql)
+
 
 def add_members(n=10):
 
@@ -165,25 +196,24 @@ def add_event_categories():
         print(cmd)
         cursor.execute(cmd)
 
-def add_events():
+def add_events(n=10):
 
     cursor.execute(" DROP TABLE IF EXISTS event;")
 
     sql = """
-
-                CREATE TABLE IF NOT EXISTS "event"
-                (
-                "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-                "name" VARCHAR(20) NOT NULL ,
-                "start_date" DATE NOT NULL ,
-                "end_date" DATE DEFAULT NULL ,
-                "place" VARCHAR(20) DEFAULT NULL ,
-                "description" VARCHAR(255) NOT NULL DEFAULT '',
-                "category" VARCHAR(20) DEFAULT NULL,
-                "organiser" integer DEFAULT NULL ,
-                CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
-                CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
-                );"""
+CREATE TABLE IF NOT EXISTS "event"
+(
+"id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+"name" VARCHAR(20) NOT NULL ,
+"start_date" DATE NOT NULL ,
+"end_date" DATE DEFAULT NULL ,
+"place" VARCHAR(20) DEFAULT NULL ,
+"description" VARCHAR(255) NOT NULL DEFAULT '',
+"category" VARCHAR(20) DEFAULT NULL,
+"organiser" integer DEFAULT NULL ,
+CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
+CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
+);"""
     print(sql)
     cursor.execute(sql)
 
@@ -202,7 +232,7 @@ def add_events():
 
         return (event_name, start_date, end_date, place, description, category, organiser)
 
-    for i in range(10):
+    for i in range(n):
         event = create_event(event_categories, event_name_verbs, event_name_cause, event_places)
 
         cmd = """INSERT INTO event (name, start_date, end_date, place, description, category, organiser)
@@ -215,16 +245,15 @@ def add_employees(n=10):
 
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS "employee"
-    (
-        "id" int NOT NULL,
-        "compensation" int NOT NULL DEFAULT 0,
-        "position_name" varchar(30) NOT NULL DEFAULT '',
+CREATE TABLE IF NOT EXISTS "employee"
+(
+    "id" int NOT NULL,
+    "compensation" int NOT NULL DEFAULT 0,
+    "position_name" varchar(30) NOT NULL DEFAULT '',
 
-        CONSTRAINT "employee_fk" FOREIGN KEY("id") REFERENCES "member"("id") ON DELETE CASCADE ON UPDATE CASCADE,
-        CONSTRAINT compensation_positive CHECK (compensation > 0),
-        PRIMARY KEY("id")
-    );
+    CONSTRAINT "employee_fk" FOREIGN KEY("id") REFERENCES "member"("id") ON DELETE CASCADE ON UPDATE CASCADE,
+    PRIMARY KEY("id")
+);
     """
 
     print(cmd)
@@ -255,17 +284,19 @@ def add_employees(n=10):
 def add_tasks(n=10):
 
     cmd = """
-    CREATE TABLE IF NOT EXISTS "task"
-    (
-    "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-    "name" varchar(20) NOT NULL,
-    "due_date" date NOT NULL,
-    "entry_date" date DEFAULT NULL,
-    "difficulty" smallint NOT NULL DEFAULT '1',
-    "completed" book NOT NULL,
-    "creator" integer NOT NULL REFERENCES "employee"("id"),
-    "event" integer NOT NULL REFERENCES "event"("id")
-    );
+CREATE TABLE IF NOT EXISTS "task"
+(
+"id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+"name" varchar(20) NOT NULL,
+"due_date" date NOT NULL,
+"entry_date" date DEFAULT NULL,
+"difficulty" smallint NOT NULL DEFAULT '1',
+"completed" book NOT NULL DEFAULT FALSE,
+"creator" integer NOT NULL REFERENCES "employee"("id"),
+"event" integer NOT NULL REFERENCES "event"("id")
+
+CONSTRAINT difficulty_sov CHECK(difficulty >= 1 AND difficulty <= 10)
+);
     """
 
     print(cmd)
@@ -343,7 +374,7 @@ def add_teamparticipations(n=10):
     def create_teamparticipation():
 
         start_date = create_date()
-        end_date = create_date(start_date)
+        end_date = create_date(start_date) if random.random() < 0.4 else 'NULL'
 
         volunteer = cursor.execute("SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         team = cursor.execute("SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
@@ -355,7 +386,7 @@ def add_teamparticipations(n=10):
         team_participation = create_teamparticipation()
 
         cmd = """
-        INSERT INTO team_participation (start_date, end_date, volunteer, team) VALUES('%s', '%s', %d, '%s')
+        INSERT INTO team_participation (start_date, end_date, volunteer, team) VALUES('%s', %s, %d, '%s')
         """ % team_participation
 
         print(cmd)
@@ -499,27 +530,6 @@ INSERT INTO income (value, date, participation) VALUES('%s', '%s', %d)
 connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
 cursor = connection.cursor()
 
-def CreateViews():
-
-    cmd = """
-    CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS
-    SELECT M.id, M.name, M.surname, TP.team
-    FROM team_participation as TP, member as M
-    WHERE TP.volunteer = M.id;
-    """
-
-    print(cmd)
-    cursor.execute(cmd)
-
-    cmd = """
-    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS
-    SELECT M.id, M.name, M.surname, T.id, T.name
-    FROM task as T, member as M, works_on as W
-    WHERE W.task = T.id AND W.volunteer = M.id;
-    """
-
-    print(cmd)
-    cursor.execute(cmd)
 
 
 def add_sales(n=10):
@@ -637,25 +647,59 @@ def add_expenses(n=10):
         print(cmd)
         cursor.execute(cmd)
 
+def CreateViews():
+
+    cmd = """
+    CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS
+    SELECT M.id, M.name, M.surname, TP.team
+    FROM team_participation as TP, member as M
+    WHERE TP.volunteer = M.id;
+    """
+    print(cmd)
+    cursor.execute(cmd)
+
+    cmd = """
+    CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS
+    SELECT M.id, M.name, M.surname, T.id, T.name
+    FROM task as T, member as M, works_on as W
+    WHERE W.task = T.id AND W.volunteer = M.id;
+    """
+    print(cmd)
+    cursor.execute(cmd)
+
+    cmd = """
+    CREATE VIEW active_event(name, id) AS
+    SELECT name, id FROM event WHERE event.end_date > date('now') OR event.end_date = null;
+    """
+    print(cmd)
+    cursor.execute(cmd)
+
+    cmd = """
+    CREATE VIEW active_team_members(name, surname, id, team_name) AS
+    SELECT M.name, M.surname, M.id, T.name FROM team_participation as TP JOIN team as T ON TP.team = T.name 
+    JOIN member as M ON TP.volunteer = M.id WHERE TP.end_date is NULL;
+    """
+    print(cmd)
+    cursor.execute(cmd)
+
 def main():
 
-    add_members()
+    add_members(10000)
 
-    add_volunteers()
-    add_employees()
+    add_volunteers(1000)
+    add_employees(1000)
 
     add_event_categories()
-    add_events()
+    add_events(100)
 
-    add_tasks()
+    add_tasks(1000)
 
-    add_teams()
-    add_workson()
-    add_teamparticipations()
+    add_teams(50)
+    add_workson(2000)
+    add_team_managements(200)
+    add_teamparticipations(500)
 
-    # add_eventorganisations()
-
-    add_eventparticipations()
+    add_eventparticipations(2000)
 
     add_expenses()
 

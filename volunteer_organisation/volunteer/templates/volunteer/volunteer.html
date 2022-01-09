@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Volunteer Profile{% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block content %}
 
 <ul>
-    <li><b>First Name</b>: {{volunteer.name}} </li>
-    <li><b>Last Name</b>: {{volunteer.surname}} </li>
+    <li><b>Name</b>: {{volunteer.name}} {{volunteer.surname}}</li>
     <li><b>Join Date</b>: {{volunteer.join_date}}</li>
     <li><b>Tasks Working On</b>: {{volunteer.tasks_working_on}}</li>
     <li><b>Favorite Category</b>: {{volunteer.favorite_event_category}}</li>
@@ -21,6 +20,15 @@
 No tasks!
 {% endfor %}
 
+<h3>Teams</h3>
+
+{% for team in teams %}
+<li><a href={%url 'volunteer:team' team.name%}>{{team.name}} {% if not team.active %}(Inactive){% endif %}</a></li>
+
+{%empty%}
+No teams joined!
+{% endfor %}
+
 <h3>Organised Events</h3>
 
 {% for event in organised_events %}
@@ -29,6 +37,7 @@ No tasks!
 {%empty%}
 No events!
 {% endfor %}
+
 
 
 {% endblock content %}

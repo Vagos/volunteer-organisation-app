@@ -6,30 +6,40 @@
 
 <h1> {{ event.name }} </h1>
 
-{{event.category_id}}
-
 <p>
     {{ event.description }}
 </p>
 
-Start Date: {{ event.start_date }}
-<br>
-End Date: {{ event.end_date }}
+<ul>
+    <li><b>Start Date:</b> {{ event.start_date }}</li>
+    <li><b>End Date:</b> {{ event.end_date }}</li>
+    <li><b>Category:</b> {{event.category}}</li>
+    <li><b>Organiser:</b> <a href={% url 'volunteer:profile' event.organiser_id %}>{{event.organiser_name}} {{event.organiser_surname}}</a></li>
+
+</ul>
+
+<form action={% url 'event:join_event' event.id %} method="post">
+    {% csrf_token %}
+    <button type="submit" name="send">Participate</button>
+</form>
 
 <h2>Participants</h2>
 
-<ol>
+<ul class="grid-list">
     {%for participant in participants %}
     <li><a href={% url 'volunteer:profile' participant.id %}>{{participant.name}} {{participant.surname}}</a></li>
     {%endfor%}
-</ol>
+</ul>
 
 <h2>Tasks</h2>
 
 <ol>
     {%for task in tasks%}
-    <li><a href={% url 'volunteer:task' task.id%}>{{task.name}}</a></li>
+    <li><a href={% url 'volunteer:task' task.id%} style="background-color: {% if task.completed %} MediumSeaGreen {% else %} Tomato {% endif %};">{{task.name}}</a></li>
     {%endfor%}
 </ol>
+
+<hr>
+
 
 {% endblock content %}

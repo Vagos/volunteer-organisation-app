@@ -4,13 +4,14 @@
 
 {% block content %}
 
-<h4>Task - {{ task.name }}</h4>
+<h3 {% if task.completed %} style="background-color: MediumSeaGreen; width: max-content;" {% endif %} >Task - {{ task.name }} {% if task.completed %} (Completed) {% endif %}</h3>
 
 <ul>
     <li><b>Event: </b><a href={% url 'event:details' task.event_id %}>{{task.event_name}}</a></li>
     <li><b>Creator: </b><a href={% url 'volunteer:profile' task.creator_id%}>{{task.creator_name}} {{task.creator_surname}}</a></li>
     <li><b>Difficulty: </b> {{task.difficulty}}</li>
     <li><b>Completed: </b> {{task.completed | yesno:"True,False"}}</li>
+    <li><b>Due Date:</b> {{task.due_date}}</li>
 </ul>
 
 <div style="text-align: center;">
@@ -28,15 +29,9 @@
 <h4>Volunteers working on this task</h4>
 
 {% for volunteer in working_on %}
-<div style="border-style: solid;">
+<div>
 <a href={%url 'volunteer:profile' volunteer.volunteer_id%}>{{volunteer.volunteer_name}} {{volunteer.volunteer_surname}}</a>
-
-<p>
-    Task evaluation. (not yet added)
-</p>
-
 </div>
-<br>
 {% endfor %}
 
 

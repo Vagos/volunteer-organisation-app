@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load static %}
+
 {% block title %}Event{% endblock %}
 
 {% block content%}
@@ -8,7 +10,7 @@
 
 <h3>Expenses</h3>
 
-<table style="width:100%; border:1px; border-color:black; border-collapse: collapse;">
+<table style="width:100%;">
     <tr>
         <th>Date</th>
         <th>Ammount</th>
@@ -19,7 +21,7 @@
     <tr>
         <td>{{expense.date}}</td>
         <td>${{expense.value}}</td>
-        <td>{{expense.event}}</td>
+        <td><a href={% url 'event:details' expense.event_id %}>{{expense.event_name}}</a></td>
     </tr>
     {% endfor %}
 
@@ -30,28 +32,97 @@
 <table style="width: 100%;">
     <tr>
         <th>Date</th>
-        <th>Value</th>
+        <th>Ammount</th>
         <th>Member</th>
+        <th>Type</th>
     </tr>
 
     {% for income in incomes %}
     <tr>
         <td> {{income.date}} </td>
-        <td> {{income.value}} </td>
-        <td> {{income.participation}} </td>
+        <td> ${{income.value}} </td>
+        <td> {{income.member_name}} {{income.member_surname}} </td>
+        <td> {{income.type}} </td>
     </tr>
     {% endfor %}
 </table>
 
+<img src="{% static 'report_graph.png' %}" style="border-color: black; border-style: solid; margin-top: 5%">
+ 
 
 <h2>Event Management</h2>
+
+
+<h4>Add Expense</h4>
+
+<form action={% url 'event:add_expense' %} method="post">
+    {% csrf_token %}
+    <label for="name">Expense reason:</label>
+    <input type="text" id="name" name="description" value="">
+
+    <label for="value">Ammount:</label>
+    <input type="number" min="1", max="10000" name="value">
+        <br>
+
+    <label for="event">Event:</label>
+        <select id="event" name="event">
+            {% for event in active_events %}
+                <option value={{event.id}}>{{event.name}}</option>
+            {% endfor %}
+        </select>
+        <br>
+
+        <input type="submit" value="Add Expense">
+
+</form>
+
+
+<h4>Create Task</h4>
+
+<form action={% url 'event:add_task' %} method="post">
+    {% csrf_token %}
+    <label for="name">Task name:</label>
+        <input type="text" id="name" name="name" value="">
+    <label for="event">Event:</label>
+        <select id="event" name="event">
+            {% for event in active_events %}
+                <option value={{event.id}}>{{event.name}}</option>
+            {% endfor %}
+        </select>
+        <br>
+
+    <label for="due">Due date:</label>
+        <input type="date" id="due" name="due" value="2018-07-22" min="2010-01-01" max="2099-31-12">
+
+    <label for="difficulty">Difficulty:</label>
+    <input type="number" min="1", max="10" name="difficulty">
+        <br>
+
+     <input type="submit" value="Add Task">
+
+</form>
+
+<h4>Create Team</h4>
+
+<form action={% url 'event:add_team' %} method="post">
+    {% csrf_token %}
+    <label for="name">Team name:</label>
+        <input type="text" id="name" name="name" value="">
+        <br>
+        <label for="description">Description:</label>
+        <textarea name="description" rows="5" cols="30"></textarea>
+        <br>
+
+        <input type="submit" value="Create Team">
+
+</form>
 
 <h4>Create Event</h4>
 
 <form action={% url 'event:add' %} method="post">
 {% csrf_token %}
 <label for="name">Event name:</label>
-<input type="text" id="name" name="name" value="Event Name">
+<input type="text" id="name" name="name" value="">
 <br>
 
 <label for="start">Start date:</label>
@@ -64,9 +135,9 @@
 
 <label for="category">Event Category:</label>
 <select id="category" name="category">
-{% for category in event_categories %}
-<option value={{category.name}}>{{category.name}}</option>
-{% endfor %}
+    {% for category in event_categories %}
+        <option value={{category.name}}>{{category.name}}</option>
+    {% endfor %}
 </select>
 <br>
 
@@ -75,12 +146,7 @@
 <br>
 
 <label for="place">Event location:</label><br>
-<textarea name="place" rows="2" cols="30"></textarea>
-<br>
-
-<label for="reason">Organisation reason:</label><br>
-<textarea name="reason" rows="2" cols="30"></textarea>
-<br>
+<input type="text" name="place"></input>
 <br>
 
  <input type="submit" value="Add Event">

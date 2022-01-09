@@ -4,7 +4,7 @@ all:
 	# for app in "member" "volunteer" "event"; do        \
 	# 	python $(BASE)/manage.py makemigrations $$app; \
 	# done
-	# python $(BASE)/manage.py migrate
+	python $(BASE)/manage.py migrate
 	python ./data/create_db.py
 
 .PHONY: clean

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http.response import Http404, HttpResponseRedirect, HttpResponse
 from django.urls import reverse
 from django.db import connection
@@ -13,12 +13,11 @@ def fetchall(cursor):
     nt_result = namedtuple('Result', [col[0] for col in desc])
     return [nt_result(*row) for row in cursor.fetchall()]
 
-
 def index(request):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("SELECT name, id FROM event WHERE end_date > date('now')")
+        cursor.execute("SELECT name, id FROM active_event")
 
         events = fetchall(cursor)
 
@@ -40,14 +39,22 @@ def profile(request, name = None):
 
 def login(request): # This logs users in and creates their account if they don't exist yet.
 
-    username = request.POST["username"]
-    password = request.POST["password"]
+    name = request.POST["username"]
+    surname = request.POST["surname"]
 
-    if not authenticate(request, username, password): add_user(username, password)
+    request.session["name"] = name
+    request.session["surname"] = surname
 
-    request.session["name"] = username
+    with connection.cursor() as cursor:
 
-    return HttpResponseRedirect(reverse("member:profile"))
+        cursor.execute(f"""SELECT 
+                       IIF(EXISTS(SELECT id FROM member WHERE name = '{name}' AND surname = '{surname}'), 
+                       (SELECT id FROM member WHERE name = '{name}' AND surname = '{surname}'), 1) as id""") 
+        member = fetchall(cursor)[0]
+
+    request.session["id"] = member.id
+
+    return redirect("volunteer:profile", volunteer_id=member.id)
 
 def authenticate(request, username, password):
 

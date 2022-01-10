@@ -1,9 +1,12 @@
 {% extends "base.html" %}
 
-{% block title %}Member{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
 
+<div style="text-align: center;">
+    <button><a href= {% url 'member:join' %}>Join Us</a></button>
+</div>
 
 <h2>Events</h2>
 
@@ -13,7 +16,6 @@
 {% endfor %}
 </ul>
 
-<a href= {% url 'member:join' %}>Join Us</a>
 
 {% endblock content %}
 

@@ -172,7 +172,7 @@ def add_volunteers(n=10):
         volunteer = create_volunteer()
 
         cmd = """
-        INSERT INTO volunteer VALUES('%s', '%s');
+INSERT INTO volunteer VALUES('%s', '%s');
         """ % volunteer
 
         print(cmd)
@@ -723,6 +723,20 @@ def CreateIndexes():
     sql = """
 CREATE UNIQUE INDEX team_name_index
 ON team(name)
+"""
+    print(sql)
+    execute_sql(cursor,sql)
+
+    sql = """
+CREATE UNIQUE INDEX member_id_index
+ON member(id)
+"""
+    print(sql)
+    execute_sql(cursor,sql)
+
+    sql = """
+CREATE UNIQUE INDEX task_id_index
+ON task(id)
 """
     print(sql)
     execute_sql(cursor,sql)

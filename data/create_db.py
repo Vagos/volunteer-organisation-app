@@ -741,6 +741,13 @@ ON task(id)
     print(sql)
     execute_sql(cursor,sql)
 
+    sql = """
+CREATE UNIQUE INDEX event_id_index
+ON event(id)
+"""
+    print(sql)
+    execute_sql(cursor,sql)
+
 def add_admin(name, surname):
 
     cmd = f"""INSERT INTO member(name, surname) VALUES('{name}', '{surname}');"""

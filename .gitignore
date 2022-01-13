@@ -1,1 +1,4 @@
 __pycache__
+
+db_dump.sqlite
+volunteer_organisation/db.sqlite3

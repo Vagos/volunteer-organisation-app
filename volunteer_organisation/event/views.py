@@ -67,7 +67,8 @@ def index(request):
         incomes = fetchall(cursor)
 
         report = cursor.execute("""
-        SELECT SUM(value) as total, strftime('%Y', date) AS year, strftime('%m', date) / 3 + 1 as quarter FROM income GROUP BY year, quarter ORDER BY year;
+        SELECT SUM(value) as total, strftime('%Y', date) AS year, strftime('%m', date) / 3 + 1 as quarter 
+        FROM income GROUP BY year, quarter ORDER BY year;
         """)
         report = fetchall(cursor)
         create_report_graph(report)
@@ -109,8 +110,13 @@ def details(request, event_id):
                        WHERE EP.event = %d""" % (event_id))
         participants = fetchall(cursor)
 
-        has_participated = None
+        cursor.execute("""
+SELECT SUM(income.value) as total FROM income JOIN event_participation as ep ON income.participation = ep.id 
+WHERE ep.event = %s 
+        """, (event_id,))
+        incomes = fetchall(cursor)[0]
 
+        has_participated = None
         if logged_in(request):
             cursor.execute("""SELECT 
             EXISTS 
@@ -121,7 +127,7 @@ def details(request, event_id):
 
             has_participated = fetchall(cursor)[0]
 
-    context = {"event":event, "tasks":tasks, "participants":participants, "has_participated":has_participated}
+    context = {"event":event, "tasks":tasks, "participants":participants, "has_participated":has_participated, "incomes":incomes}
 
     return render(request, "event/details.html", context=context)
 

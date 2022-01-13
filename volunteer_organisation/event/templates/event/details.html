@@ -15,6 +15,7 @@
     <li><b>End Date:</b> {{ event.end_date }}</li>
     <li><b>Category:</b> {{event.category}}</li>
     <li><b>Organiser:</b> <a href={% url 'volunteer:profile' event.organiser_id %}>{{event.organiser_name}} {{event.organiser_surname}}</a></li>
+    {% if incomes.total %}<li><b>Total incomes:</b> ${{incomes.total}} </li>{% endif %}
 
 </ul>
 

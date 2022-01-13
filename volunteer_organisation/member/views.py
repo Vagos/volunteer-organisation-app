@@ -70,8 +70,16 @@ def index(request):
         """)
         every_category = fetchall(cursor)[0]
 
+        cursor.execute("""
+SELECT SUM(income.value) as total, event.name 
+FROM income JOIN event_participation as ep ON income.participation = ep.id JOIN event on event.id = ep.event GROUP BY event.id
+ORDER BY total DESC LIMIT 1;
+        """)
+        most_income_event = fetchall(cursor)[0]
+
     facts = {"first_event": first_event, "vols_joined_last_days":vols_joined_last_days, 
-             "most_participations":most_participations, "most_common_events":most_common_events, "biggest_donation":biggest_donation, "every_category":every_category}
+             "most_participations":most_participations, "most_common_events":most_common_events, "biggest_donation":biggest_donation, "every_category":every_category,
+             "most_income_event":most_income_event}
         
     context = {"events": events, "past_events":past_events, "facts":facts}
 

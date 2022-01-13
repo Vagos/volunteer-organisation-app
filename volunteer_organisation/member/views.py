@@ -135,7 +135,7 @@ def support(request):
 
 def support_add(request):
 
-    d_p = request.POST["event"] # event_participation
+    d_p = request.POST["event"] # This is the event_participation id
     d_v = request.POST["value"]
     d_m = request.POST["message"]
 

@@ -18,7 +18,7 @@
 
 </ul>
 
-{% if event.active %}
+{% if event.active and not has_participated.exist %}
 <form action={% url 'event:join_event' event.id %} method="post">
     {% csrf_token %}
     <button type="submit" name="send">Participate</button>

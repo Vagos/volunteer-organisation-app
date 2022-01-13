@@ -98,7 +98,7 @@ def details(request, event_id):
                            SELECT M.surname FROM member as M where M.id = E.organiser
                        ) as organiser_surname,
                        E.organiser as organiser_id
-                       FROM event AS E WHERE e.id = %d""" % event_id) 
+                       FROM event AS E WHERE E.id = %d""" % event_id) 
         event = fetchall(cursor)[0]
 
         cursor.execute("SELECT id, name, completed FROM task WHERE event = %d" % event_id)
@@ -109,7 +109,19 @@ def details(request, event_id):
                        WHERE EP.event = %d""" % (event_id))
         participants = fetchall(cursor)
 
-    context = {"event":event, "tasks":tasks, "participants":participants}
+        has_participated = None
+
+        if logged_in(request):
+            cursor.execute("""SELECT 
+            EXISTS 
+            (
+            SELECT id FROM event_participation WHERE member = %s AND event = %s
+            ) as exist
+                           """, (request.session["id"], event_id))
+
+            has_participated = fetchall(cursor)[0]
+
+    context = {"event":event, "tasks":tasks, "participants":participants, "has_participated":has_participated}
 
     return render(request, "event/details.html", context=context)
 
@@ -198,12 +210,11 @@ def add_team(request):
 
 def join_event(request, event_id):
 
-    
     with connection.cursor() as cursor:
         try:
             cursor.execute("INSERT INTO event_participation (event, member) VALUES(%d, %s)" % (event_id, request.session["id"]))
         except django.db.IntegrityError:
-            pass
+            redirect("member:join")
 
     return redirect(("event:details"), event_id=event_id)
 

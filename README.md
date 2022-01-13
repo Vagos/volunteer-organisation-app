@@ -1,12 +1,12 @@
 ## TODO
 
 ## Evangelos
-- [ ] Fix way someone sees their Profile
-- [ ] Member: Sign in page
+- [X] Fix way someone sees their Profile
+- [X] Member: Sign in page
 - [X] Volunteer: Choose team page
 - [X] Volunteer: See tasks page
-- [o] Fill Database with test data
-- [ ] Find hardest working volunteer/Volunteer of the month
+- [X] Fill Database with test data
+- [X] Find hardest working volunteer/Volunteer of the month
 - [ ] Color code tasks based on difficulty
 
 ## Ioanna

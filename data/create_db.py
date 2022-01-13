@@ -77,7 +77,7 @@ def create_task(verbs, targets):
     due_date = create_date(entry_date)
 
     difficulty = random.randint(1, 10)
-    completed = False
+    completed = False if random.random() < 0.5 else True
 
     creator = cursor.execute("select id from employee order by random() limit 1").fetchone()[0]
     event = cursor.execute("select id from event order by random() limit 1").fetchone()[0]
@@ -159,10 +159,10 @@ def add_volunteers(n=10):
 
     def create_volunteer():
 
-        id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        _id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         join_date = create_date()
 
-        return (id, join_date)
+        return (_id, join_date)
 
     for i in range(n):
         volunteer = create_volunteer()
@@ -368,7 +368,6 @@ def add_teamparticipations(n=10):
     """
 
     print(cmd)
-
     cursor.execute(cmd)
 
     def create_teamparticipation():
@@ -389,9 +388,11 @@ def add_teamparticipations(n=10):
         INSERT INTO team_participation (start_date, end_date, volunteer, team) VALUES('%s', %s, %d, '%s')
         """ % team_participation
 
-        print(cmd)
-
-        cursor.execute(cmd)
+        try:
+            print(cmd)
+            cursor.execute(cmd)
+        except sqlite3.IntegrityError:
+            pass
 
 def add_eventorganisations(n=10):
 
@@ -479,7 +480,7 @@ def add_eventparticipations(n=10):
         member = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
-        return (member, event, impressions)
+        return (event, member, impressions)
 
     for i in range(n):
         event_participation = create_eventparticipation()
@@ -669,27 +670,91 @@ def CreateViews():
 
     cmd = """
     CREATE VIEW active_event(name, id) AS
-    SELECT name, id FROM event WHERE event.end_date > date('now') OR event.end_date = null;
+    SELECT name, id FROM event WHERE event.end_date > date('now') OR event.end_date is NULL;
     """
     print(cmd)
     cursor.execute(cmd)
 
     cmd = """
     CREATE VIEW active_team_members(name, surname, id, team_name) AS
-    SELECT M.name, M.surname, M.id, T.name FROM team_participation as TP JOIN team as T ON TP.team = T.name 
-    JOIN member as M ON TP.volunteer = M.id WHERE TP.end_date is NULL;
+    SELECT M.name, M.surname, M.id, T.name 
+    FROM team_participation as TP JOIN team as T ON TP.team = T.name JOIN member as M ON TP.volunteer = M.id 
+    WHERE TP.end_date is NULL;
     """
+    print(cmd)
+    cursor.execute(cmd)
+
+def CreateTriggers():
+
+    sql = """
+CREATE TRIGGER correct_participation_date 
+BEFORE INSERT ON event_participation
+BEGIN 
+    SELECT 
+        CASE 
+            WHEN NEW.event NOT IN (SELECT id FROM active_event) THEN 
+                RAISE (ABORT, 'No new participations allowed on this event. It is not active.')
+            END;
+END;
+    """
+    print(sql)
+    cursor.execute(sql)
+
+    sql = """ 
+CREATE TRIGGER double_team_participation 
+    BEFORE INSERT ON team_participation
+
+    BEGIN 
+        SElECT 
+            CASE 
+                WHEN EXISTS (SELECT id FROM team_participation as TP WHERE TP.volunteer = NEW.volunteer AND TP.team = NEW.team AND TP.end_date is NULL) THEN
+                    RAISE(ABORT, 'A volunteer cannot join the same team twice without leaving first.')
+                END;
+    END;
+    """
+
+    print(sql)
+    cursor.execute(sql)
+
+def add_admin(name, surname):
+
+    cmd = f"""INSERT INTO member(name, surname) VALUES('{name}', '{surname}');"""
+    print(cmd)
+    cursor.execute(cmd)
+
+    member_id = cursor.execute("SELECT LAST_INSERT_ROWID()").fetchone()[0]
+
+    cmd = f"""INSERT INTO volunteer VALUES({member_id}, '{create_date()}');"""
+    print(cmd)
+    cursor.execute(cmd)
+
+    cmd = f"""INSERT INTO employee VALUES({member_id}, {77777}, '{"Admin"}');"""
     print(cmd)
     cursor.execute(cmd)
 
 def main():
 
-    add_members(10000)
-
-    add_volunteers(1000)
-    add_employees(1000)
-
     add_event_categories()
+
+    add_members(0)
+    add_volunteers(0)
+    add_employees(0)
+    add_events(0)
+    add_tasks(0)
+    add_teams(0)
+    add_workson(0)
+    add_team_managements(0)
+    add_teamparticipations(0)
+    add_eventparticipations(0)
+
+    CreateTriggers()
+
+    add_members(100)
+
+    add_volunteers(10)
+    add_employees(10)
+
+    # add_event_categories()
     add_events(100)
 
     add_tasks(1000)
@@ -708,8 +773,10 @@ def main():
     add_services()
     add_sales()
 
-    CreateViews()
+   
+    add_admin("Admin", "Adminopoulos");
 
+    CreateViews()
 
 main()
 

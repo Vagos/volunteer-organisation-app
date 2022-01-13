@@ -17,8 +17,13 @@
         </ul>
     </div>
 
+
     <div id="content">
         {% block content %}{% endblock %}
+    </div>
+
+    <div style="margin-top: 50%">
+        {% if user_id %} Logged in as: <a href={% url 'volunteer:profile' user_id %}>{{user_name}} {{user_surname}}</a>{% endif %}
     </div>
 </body>
 </html>

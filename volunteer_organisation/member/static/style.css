@@ -24,6 +24,10 @@ button {
   padding-left: var(--pad);
 }
 
+form > input[type="submit"], button {
+  cursor: pointer;
+}
+
 a {
   text-decoration: none;
 }

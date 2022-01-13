@@ -5,26 +5,29 @@ from django.urls import reverse
 import django.db
 from django.contrib.staticfiles import finders
 
-from collections import namedtuple
+from member.utilities import *
 
 # Create your views here.
 
-def fetchall(cursor):
-    "Return all rows from a cursor as a namedtuple"
-    desc = cursor.description
-    nt_result = namedtuple('Result', [col[0] for col in desc])
-    return [nt_result(*row) for row in cursor.fetchall()]
-
 def create_report_graph(report):
+
+    print(report)
+
 
     import matplotlib.pyplot as plt
 
     incomes = [r.total for r in report] # y axis
-    month = [r.month for r in report] # x axis
+    month = [f"{r.year}:{r.quarter}" for r in report] # x axis
+
+    plt.rcParams["font.size"] = 7.0
+    plt.rcParams["text.usetex"] = True
+    
+    plt.title("Volunteer Organisation Incomes")
+    plt.xlabel("Year/Month")
+    plt.ylabel("Incomes")
+    
+
     plt.plot(month, incomes)
-
-    print(incomes, month)
-
 
     # Save the plot file
     APP_LABEL = 'event'
@@ -32,20 +35,26 @@ def create_report_graph(report):
     stores = finders.AppDirectoriesFinder(app_names={APP_LABEL}).storages
     file_path = stores[APP_LABEL].path(FILE_NAME)
 
-    print("PATH: ", file_path)
-
     plt.savefig(file_path)
 
-    
 
 def index(request):
 
     with connection.cursor() as cursor:
+        
+        if not logged_in(request): return redirect("member:index")
+
+        cursor.execute("SELECT %s IN (SELECT id FROM employee) as is_employee" % request.session["id"])
+        if (not fetchall(cursor)[0].is_employee): return redirect("member:index")
+
+        cursor.execute("SELECT name, surname, member.id as id FROM employee JOIN member ON employee.id = member.id")
+        employees = fetchall(cursor)
 
         cursor.execute("SELECT name FROM event_category")
         event_categories = fetchall(cursor)
 
-        cursor.execute("SELECT date, value, event.name as event_name, event.id as event_id FROM expense JOIN event ON expense.event = event.id ORDER BY date DESC")
+        cursor.execute("""SELECT date, value, expense.description, event.name as event_name, event.id as event_id FROM expense JOIN event ON expense.event = event.id 
+                       ORDER BY date DESC LIMIT 10""")
         expenses = fetchall(cursor)
 
         cursor.execute("""SELECT I.date, I.value, M.name as member_name, M.surname as member_surname, 
@@ -54,11 +63,11 @@ def index(request):
         ) as type
         FROM 
         income as I JOIN event_participation as P ON I.participation = P.id JOIN member as M on P.member = M.id
-        ORDER BY DATE DESC""")
+        ORDER BY DATE DESC LIMIT 10""")
         incomes = fetchall(cursor)
 
         report = cursor.execute("""
-        SELECT SUM(value) as total, strftime('%Y %m', date) AS month FROM income GROUP BY month;
+        SELECT SUM(value) as total, strftime('%Y', date) AS year, strftime('%m', date) / 3 + 1 as quarter FROM income GROUP BY year, quarter ORDER BY year;
         """)
         report = fetchall(cursor)
         create_report_graph(report)
@@ -66,7 +75,11 @@ def index(request):
         cursor.execute("SELECT * FROM active_event")
         active_events = fetchall(cursor)
 
-    context = { "event_categories":event_categories, "expenses":expenses, "incomes":incomes, "active_events":active_events }
+        cursor.execute("SELECT T.id, T.name, E.name as event_name  FROM task as T join event as E on T.event = E.id WHERE T.completed = false AND T.creator = %s", (request.session["id"], ))
+        created_tasks = fetchall(cursor)
+
+    context = { "event_categories":event_categories, "employees":employees, "expenses":expenses, 
+               "incomes":incomes, "active_events":active_events, "created_tasks":created_tasks }
 
     return render(request, "event/index.html", context=context)
 
@@ -75,6 +88,9 @@ def details(request, event_id):
     with connection.cursor() as cursor:
 
         cursor.execute("""SELECT E.name, E.id, E.start_date, E.end_date, E.category, 
+                        (
+                            SELECT E.id IN (SELECT id from  active_event)
+                        ) as active,
                        (
                            SELECT M.name FROM member as M where M.id = E.organiser
                        ) as organiser_name, 
@@ -113,13 +129,11 @@ def add_event(request):
         description = request.POST["description"]
         category = request.POST["category"]
 
-        reason = request.POST["reason"]
-
         cursor.execute(""" INSERT INTO event 
-                           (name, start_date, end_date, place, description, category)
-                           VALUES('%s', '%s','%s','%s','%s','%s')
+                           (name, start_date, end_date, place, description, category, organiser)
+                           VALUES('%s', '%s','%s','%s','%s','%s', %s)
                        """ % 
-                       (event_name, start_date, end_date, place, description, category))
+                       (event_name, start_date, end_date, place, description, category, request.session["id"]))
         
     return HttpResponseRedirect(reverse("event:index"))
 
@@ -137,7 +151,7 @@ def add_eventcategory(request):
 
     return HttpResponseRedirect(reverse("event:index"))
 
-def add_task(request):
+def task_add(request):
 
     if not request.POST: return HttpResponseRedirect(reverse("event:index"))
     
@@ -148,10 +162,25 @@ def add_task(request):
         t_dd = request.POST["due"]
         t_d = request.POST["difficulty"]
 
-        cursor.execute("INSERT INTO task (name, event, due_date, difficulty, entry_date, creator) VALUES('%s', %s, '%s', %s, date('now'), %d)" 
-                       % (t_n, t_e, t_dd, t_d, 1))
+        cursor.execute("INSERT INTO task (name, event, due_date, difficulty, entry_date, creator) VALUES('%s', %s, '%s', %s, date('now'), %s)" 
+                       % (t_n, t_e, t_dd, t_d, request.session["id"]))
     
-    return HttpResponseRedirect(reverse("event:index"))
+    return redirect("event:index")
+
+def task_delete(request):
+
+    t = request.POST["task"]
+
+
+    with connection.cursor() as cursor:
+
+        cursor.execute("DELETE FROM task WHERE task.id = %s", (t,))
+
+    return redirect("event:index")
+
+def remove_task(request):
+
+    return redirect("event:index")
 
 def add_team(request):
 
@@ -161,10 +190,9 @@ def add_team(request):
     t_d = request.POST["description"]
 
     with connection.cursor() as cursor:
-        cursor.execute("INSERT INTO team (name, description) VALUES('%s', '%s')" % (t_n, t_d))
 
-        cursor.execute("INSERT INTO team_management (employee, description, team, start_date) (%s, %s, %s, date('now'))" %
-                       ("1", t_n, t_d))
+        cursor.execute("INSERT INTO team (name, description) VALUES('%s', '%s')" % (t_n, t_d) )
+        cursor.execute("INSERT INTO team_management (employee, team, start_date) VALUES(%s, '%s', date('now'))" % (request.session["id"], t_n) )
     
     return HttpResponseRedirect(reverse("event:index"))
 

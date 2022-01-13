@@ -18,10 +18,12 @@
 
 </ul>
 
+{% if event.active %}
 <form action={% url 'event:join_event' event.id %} method="post">
     {% csrf_token %}
     <button type="submit" name="send">Participate</button>
 </form>
+{% endif %}
 
 <h2>Participants</h2>
 

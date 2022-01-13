@@ -34,6 +34,7 @@ https://docs.djangoproject.com/en/3.2/intro/tutorial03/
 ### SQLite
 
 * https://stackoverflow.com/questions/15819186/sqlite-create-unique-pair-of-columns
+* https://www.sqlitetutorial.net
 
 Views: 
 

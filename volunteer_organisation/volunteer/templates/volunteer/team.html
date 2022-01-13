@@ -8,10 +8,23 @@
 <h2>Info</h2>
 
 <p>{{ team.description }}</p>
-<li><b>Team Manager:</b> <a href={% url 'volunteer:profile' team.mgr_id %}>{{ team.mgr_name }} {{team.mgr_surname}}</a></li>
 
-<li><b>Best Volunteer:</b> {{team.name}}</li>
+<ul>
+    <li><b>Team Manager:</b> 
+        {% if team.mgr_id %}
+        <a href={% url 'volunteer:profile' team.mgr_id %}>{{ team.mgr_name }} {{team.mgr_surname}}</a>
+        {% else %} None {% endif %}
+    
+    </li>
 
+<li><b>Best Volunteer:</b> {{team.best_volunteer}}</li>
+</ul>
+
+<div style="text-align: center;">
+<button> <a href={% url 'volunteer:team_join' team.name %}>Join Team</a> </button>
+
+<button> <a href={% url 'volunteer:team_leave' team.name %}>Leave Team</a> </button>
+</div>
 
 <h2>Members</h2>
 

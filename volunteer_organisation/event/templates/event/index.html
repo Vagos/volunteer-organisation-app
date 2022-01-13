@@ -15,6 +15,7 @@
         <th>Date</th>
         <th>Ammount</th>
         <th>Event</th>
+        <th>Reason</th>
     </tr>
 
     {%for expense in expenses%}
@@ -22,6 +23,7 @@
         <td>{{expense.date}}</td>
         <td>${{expense.value}}</td>
         <td><a href={% url 'event:details' expense.event_id %}>{{expense.event_name}}</a></td>
+        <td>{{expense.description}}</td>
     </tr>
     {% endfor %}
 
@@ -50,37 +52,37 @@
 <img src="{% static 'report_graph.png' %}" style="border-color: black; border-style: solid; margin-top: 5%">
  
 
-<h2>Event Management</h2>
+<h2>Management</h2>
 
-
-<h4>Add Expense</h4>
 
 <form action={% url 'event:add_expense' %} method="post">
     {% csrf_token %}
-    <label for="name">Expense reason:</label>
-    <input type="text" id="name" name="description" value="">
+    <fieldset>
+        <legend><b>Add Expense</b></legend>
+        <label for="name">Expense reason:</label>
+        <input type="text" id="name" name="description" value="">
 
-    <label for="value">Ammount:</label>
-    <input type="number" min="1", max="10000" name="value">
-        <br>
+        <label for="value">Ammount:</label>
+        <input type="number" min="1", max="10000" name="value">
+            <br>
 
-    <label for="event">Event:</label>
-        <select id="event" name="event">
-            {% for event in active_events %}
-                <option value={{event.id}}>{{event.name}}</option>
-            {% endfor %}
-        </select>
-        <br>
+        <label for="event">Event:</label>
+            <select id="event" name="event">
+                {% for event in active_events %}
+                    <option value={{event.id}}>{{event.name}}</option>
+                {% endfor %}
+            </select>
+            <br>
 
         <input type="submit" value="Add Expense">
-
+     </fieldset>
 </form>
 
 
-<h4>Create Task</h4>
-
 <form action={% url 'event:add_task' %} method="post">
     {% csrf_token %}
+    <fieldset>
+        <legend><b>Create Task</b></legend>
     <label for="name">Task name:</label>
         <input type="text" id="name" name="name" value="">
     <label for="event">Event:</label>
@@ -92,76 +94,106 @@
         <br>
 
     <label for="due">Due date:</label>
-        <input type="date" id="due" name="due" value="2018-07-22" min="2010-01-01" max="2099-31-12">
+        <input type="date" id="due" name="due" value="" min="2010-01-01" max="2099-31-12">
 
     <label for="difficulty">Difficulty:</label>
     <input type="number" min="1", max="10" name="difficulty">
         <br>
 
      <input type="submit" value="Add Task">
-
+    </fieldset>
 </form>
 
-<h4>Create Team</h4>
+{% if created_tasks %}
+    <form action={% url 'event:task_delete' %} method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend><b>Delete Task</b></legend>
+                <select name="task">
+                    {% for task in created_tasks %}
+                    <option value={{task.id}}>{{task.name}} ({{task.event_name}})</option>
+                    {% endfor %}
+                </select>
+             <input type="submit" value="Delete Task">
+        </fieldset>
+    </form>
+{% endif %}
+
 
 <form action={% url 'event:add_team' %} method="post">
-    {% csrf_token %}
-    <label for="name">Team name:</label>
-        <input type="text" id="name" name="name" value="">
-        <br>
-        <label for="description">Description:</label>
-        <textarea name="description" rows="5" cols="30"></textarea>
-        <br>
+        {% csrf_token %}
+    <fieldset>
+        <legend><b>Create Team</b></legend>
+        <label for="name">Team name:</label>
+            <input type="text" id="name" name="name" value="">
+            <br>
+            <label for="description">Description:</label>
+            <textarea name="description" rows="2" cols="30"></textarea>
+            <br>
 
-        <input type="submit" value="Create Team">
+            <input type="submit" value="Create Team">
 
+    </fieldset>
 </form>
 
-<h4>Create Event</h4>
 
 <form action={% url 'event:add' %} method="post">
-{% csrf_token %}
-<label for="name">Event name:</label>
-<input type="text" id="name" name="name" value="">
-<br>
+    {% csrf_token %}
+    <fieldset>
+        <legend><b>Create Event</b></legend>
+    <label for="name">Event name:</label>
+    <input type="text" id="name" name="name" value="">
+    <br>
 
-<label for="start">Start date:</label>
-<input type="date" id="start" name="start" value="2018-07-22" min="2010-01-01" max="2099-31-12">
-<br>
+    <label for="start">Start date:</label>
+    <input type="date" id="start" name="start" value="" min="2010-01-01" max="2099-31-12">
+    <br>
 
-<label for="end">End date:</label>
-<input type="date" id="end" name="end" value="2018-07-22" min="2010-01-01" max="2099-31-12">
-<br>
+    <label for="end">End date:</label>
+    <input type="date" id="end" name="end" value="" min="2010-01-01" max="2099-31-12">
+    <br>
 
-<label for="category">Event Category:</label>
-<select id="category" name="category">
-    {% for category in event_categories %}
-        <option value={{category.name}}>{{category.name}}</option>
-    {% endfor %}
-</select>
-<br>
+    <label for="category">Event Category:</label>
+    <select id="category" name="category">
+        {% for category in event_categories %}
+            <option value={{category.name}}>{{category.name}}</option>
+        {% endfor %}
+    </select>
+    <br>
 
-<label for="description">Event description:</label><br>
-<textarea name="description" rows="5" cols="30"></textarea>
-<br>
+    <label for="description">Event description:</label><br>
+    <textarea name="description" rows="3" cols="30"></textarea>
+    <br>
 
-<label for="place">Event location:</label><br>
-<input type="text" name="place"></input>
-<br>
+    <label for="place">Event location:</label><br>
+    <input type="text" name="place"></input>
+    <br>
 
- <input type="submit" value="Add Event">
-
+     <input type="submit" value="Add Event">
+    </fieldset>
 </form>
-
-<h4>Add Event Category</h4>
 
 <form action={% url 'event:add_category' %} method="post">
-{% csrf_token %}
-<label for="name">Category name:</label>
-<input type="text" id="name" name="name" value="Category Name">
+    {% csrf_token %}
+    <fieldset>
+        <legend><b>Add Event Category</b></legend>
+        <label for="name">Category name:</label>
+        <input type="text" id="name" name="name" value="Category Name">
 
-
-<input type="submit" value="Add Category">
+        <input type="submit" value="Add Category">
+    </fieldset>
 </form>
+
+<hr>
+
+<h3>Employees</h3>
+
+<ul class="grid-list">
+{% for employee in employees %}
+
+<li><a href={% url 'volunteer:profile' employee.id %}>{{employee.name}} {{employee.surname}}</a></li>
+
+{% endfor %}
+</ul>
 
 {% endblock content%}

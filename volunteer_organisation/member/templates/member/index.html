@@ -6,6 +6,7 @@
 
 <div style="text-align: center;">
     <button><a href= {% url 'member:join' %}>Join Us</a></button>
+    <button><a href= {% url 'member:support' %}>Support Us</a></button>
 </div>
 
 <h2>Events</h2>
@@ -16,7 +17,25 @@
 {% endfor %}
 </ul>
 
+<h2>Past Events</h2>
 
+<ul class="grid-list">
+{% for event in past_events %}
+
+<li><a href={% url 'event:details' event.id %}> {{ event.name }} </a></li>
+
+{% endfor %}
+</ul>
+
+<hr>
+
+<h4>Did you know...</h4>
+
+<li>Our first event ({{facts.first_event.name}}) was in {{facts.first_event.start_date}}</li>
+<li>In the last year {{facts.vols_joined_last_days.count}} volunteers have joined us!</li>
+<li>The member with the most participations is {{facts.most_participations.name}} with {{facts.most_participations.participation_count}} participations!</li>
+<li>The members that are best buddies (attended the most events together) are 
+    {{facts.most_common_events.name1}} and {{facts.most_common_events.name2}} with {{facts.most_common_events.common}} common participations!</li>
+<li>The biggest single donation (${{facts.biggest_donation.value}}) was done by {{facts.biggest_donation.name}} on {{facts.biggest_donation.date}}</li>
+<li>There are {{facts.every_category.count}} members that have participated in at least one event from each category.</li>
 {% endblock content %}
-
-

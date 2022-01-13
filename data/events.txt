@@ -2,6 +2,16 @@ Education
 Enviroment
 Political
 Artistic
+Social
+Charity
+Equality
+Positivity
+Economic
+Health
+Global
+Spiritual
+Marketing
+Workshop
 
 Help
 Plant
@@ -25,6 +35,15 @@ the World
 Pollution
 War
 Peace
+Games
+Relaxation
+Programming
+Maths
+Science
+School
+Health
+Love
+Music
 
 Patras
 Athens

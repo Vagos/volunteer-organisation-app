@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Support{% endblock %}
+
+{% block  content %}
+
+<form action="{% url 'member:support_add' %}" method="post">
+  {% csrf_token %}
+  <fieldset>
+    <legend><b>Donation</b></legend>
+<select id="event" name="event">
+  <option value="0">No Event</option>
+  {% for event in participated_events %}
+    <option value={{event.id}}>{{event.name}}({{event.start_date}})</option>
+  {% endfor %}
+</select>
+  <input type="number" name="value" value="1">$
+  <input type="text" name="message" value="Write a message!">
+  <input type="submit" value="Donate">
+  <input type="hidden" name="type" value="donation">
+  </fieldset>
+</form>
+
+<form action="{% url 'member:support_add' %}" method="post">
+  {% csrf_token %}
+  <fieldset>
+    <legend><b>Service</b></legend>
+<select id="event" name="event">
+  {% for event in participated_events %}
+    <option value={{event.id}}>{{event.name}}({{event.start_date}})</option>
+  {% endfor %}
+</select>
+  <input type="hidden" name="value" value="1">
+  <input type="text" name="message" value="Description of service.">
+  <input type="submit" value="Help our Event">
+  <input type="hidden" name="type" value="service">
+  </fieldset>
+</form>
+
+<form action="{% url 'member:support_add' %}" method="post">
+  {% csrf_token %}
+  <fieldset>
+    <legend><b>Sale</b></legend>
+<select id="event" name="event">
+  {% for event in participated_events %}
+    <option value={{event.id}}>{{event.name}}({{event.start_date}})</option>
+  {% endfor %}
+</select>
+  <input type="text" name="message" value="Item name"> <br>
+  <label for="ammount">Ammount:</label>
+  <input type="number" name="ammount" value="1" id="ammount">
+  <label for="value">Value:</label>
+  <input type="number" name="value" value="1">$
+  <input type="submit" value="Help our Event">
+  <input type="hidden" name="type" value="sale">
+  </fieldset>
+</form>
+    
+{% endblock content %}

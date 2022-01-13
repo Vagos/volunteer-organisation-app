@@ -8,7 +8,7 @@
 
 <ul>
     <li><b>Event: </b><a href={% url 'event:details' task.event_id %}>{{task.event_name}}</a></li>
-    <li><b>Creator: </b><a href={% url 'volunteer:profile' task.creator_id%}>{{task.creator_name}} {{task.creator_surname}}</a></li>
+    <li><b>Creator: </b> <a href={% url 'volunteer:profile' task.creator_id%}>{{task.creator_name}} {{task.creator_surname}} </a></li>
     <li><b>Difficulty: </b> {{task.difficulty}}</li>
     <li><b>Completed: </b> {{task.completed | yesno:"True,False"}}</li>
     <li><b>Due Date:</b> {{task.due_date}}</li>

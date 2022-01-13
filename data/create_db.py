@@ -4,6 +4,10 @@ import string
 
 base = "./data"
 
+def execute_sql(cursor, sql):
+
+    return cursor.execute(sql)
+
 with open(base + "/member_usernames.txt", "r") as member_name_file:
 
     member_names, member_surnames = member_name_file.read().strip().split('\n\n')
@@ -38,7 +42,7 @@ def create_income_to_expense():
                 CONSTRAINT "expense_id_FK" FOREIGN KEY("expense_id") REFERENCES "expense"("id") ON DELETE SET NULL ON UPDATE CASCADE
                 );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
 
 def create_string(l=20):
@@ -79,8 +83,8 @@ def create_task(verbs, targets):
     difficulty = random.randint(1, 10)
     completed = False if random.random() < 0.5 else True
 
-    creator = cursor.execute("select id from employee order by random() limit 1").fetchone()[0]
-    event = cursor.execute("select id from event order by random() limit 1").fetchone()[0]
+    creator = execute_sql(cursor,"select id from employee order by random() limit 1").fetchone()[0]
+    event = execute_sql(cursor,"select id from event order by random() limit 1").fetchone()[0]
 
     return (name, due_date, entry_date, difficulty, completed, creator, event)
 
@@ -101,14 +105,14 @@ CONSTRAINT "employee_fk" FOREIGN KEY("employee") REFERENCES "employee"("id") ON 
 """
 
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_team_management():
 
         start_date = create_date()
         end_date = create_date() if random.random() < 0.5 else 'NULL'
-        employee = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        team = cursor.execute("SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        employee = execute_sql(cursor,"SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        team = execute_sql(cursor,"SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (employee, team, start_date, end_date)
 
@@ -117,7 +121,7 @@ CONSTRAINT "employee_fk" FOREIGN KEY("employee") REFERENCES "employee"("id") ON 
         team_management = create_team_management()
         sql = """INSERT INTO team_management (employee, team, start_date, end_date) VALUES(%d, '%s', '%s', %s)""" % team_management
         print(sql)
-        cursor.execute(sql)
+        execute_sql(cursor,sql)
 
 
 def add_members(n=10):
@@ -135,14 +139,14 @@ def add_members(n=10):
     """
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     for i in range(n):
         username = create_username(member_names, member_surnames)
         cmd = "INSERT INTO member (name, surname) VALUES('%s', '%s');" % username
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_volunteers(n=10):
 
@@ -155,11 +159,11 @@ def add_volunteers(n=10):
 
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     def create_volunteer():
 
-        _id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        _id = execute_sql(cursor,"SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         join_date = create_date()
 
         return (_id, join_date)
@@ -174,7 +178,7 @@ def add_volunteers(n=10):
         print(cmd)
 
         try:
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except sqlite3.IntegrityError:
             pass
 
@@ -186,7 +190,7 @@ def add_event_categories():
     """
 
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     for c in event_categories:
         cmd = """
@@ -194,11 +198,11 @@ def add_event_categories():
         """ % (c,)
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_events(n=10):
 
-    cursor.execute(" DROP TABLE IF EXISTS event;")
+    execute_sql(cursor," DROP TABLE IF EXISTS event;")
 
     sql = """
 CREATE TABLE IF NOT EXISTS "event"
@@ -215,7 +219,7 @@ CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("na
 CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
 );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_event(categories, verbs, causes, places):
 
@@ -228,7 +232,7 @@ CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") O
         description = create_string(20)
         category = random.choice(categories)
 
-        organiser = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        organiser = execute_sql(cursor,"SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (event_name, start_date, end_date, place, description, category, organiser)
 
@@ -239,7 +243,7 @@ CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") O
                values('%s', '%s', '%s', '%s', '%s', '%s', %d)""" % event
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_employees(n=10):
 
@@ -258,11 +262,11 @@ CREATE TABLE IF NOT EXISTS "employee"
 
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     def create_employee():
 
-        _id = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        _id = execute_sql(cursor,"SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         compensation = random.randint(100, 10_000)
         position_name = "A Position"
 
@@ -276,7 +280,7 @@ CREATE TABLE IF NOT EXISTS "employee"
 
             print(cmd)
 
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
 
         except sqlite3.IntegrityError:
             pass
@@ -301,7 +305,7 @@ CONSTRAINT difficulty_sov CHECK(difficulty >= 1 AND difficulty <= 10)
 
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     for i in range(n):
         task = create_task(task_verbs, task_targets)
@@ -311,7 +315,7 @@ CONSTRAINT difficulty_sov CHECK(difficulty >= 1 AND difficulty <= 10)
 
         print(cmd)
 
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_workson(n=10):
 
@@ -329,12 +333,12 @@ def add_workson(n=10):
 """
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     def create_workson():
 
-        volunteer = cursor.execute("SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        task = cursor.execute("SELECT id FROM task ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        volunteer = execute_sql(cursor,"SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        task = execute_sql(cursor,"SELECT id FROM task ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         evaluation = "I think the task was done " + create_string(10);
 
@@ -350,7 +354,7 @@ def add_workson(n=10):
         
         try:
             print(cmd)
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except:
             pass
 
@@ -368,15 +372,15 @@ def add_teamparticipations(n=10):
     """
 
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     def create_teamparticipation():
 
         start_date = create_date()
         end_date = create_date(start_date) if random.random() < 0.4 else 'NULL'
 
-        volunteer = cursor.execute("SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        team = cursor.execute("SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        volunteer = execute_sql(cursor,"SELECT id FROM volunteer ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        team = execute_sql(cursor,"SELECT name FROM team ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (start_date, end_date, volunteer, team)
 
@@ -390,7 +394,7 @@ def add_teamparticipations(n=10):
 
         try:
             print(cmd)
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except sqlite3.IntegrityError:
             pass
 
@@ -400,8 +404,8 @@ def add_eventorganisations(n=10):
 
         reason = "Event created because " + create_string(20)
         entry_date = "DATE('now')" # This should be before the event's start date.
-        event_id_id = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        organiser_id_id = cursor.execute("SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event_id_id = execute_sql(cursor,"SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        organiser_id_id = execute_sql(cursor,"SELECT id FROM employee ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (reason, entry_date, event_id_id, organiser_id_id)
 
@@ -415,7 +419,7 @@ def add_eventorganisations(n=10):
 
         try:
             print(cmd)
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except sqlite3.IntegrityError:
             pass
 
@@ -439,7 +443,7 @@ def add_teams(n=10):
 
     print(cmd)
 
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     for i in range(n):
         team = create_team(team_targets, team_occupation)
@@ -451,13 +455,13 @@ def add_teams(n=10):
         print(cmd)
 
         try:
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except sqlite3.IntegrityError:
             pass
 
 def add_eventparticipations(n=10):
 
-    cursor.execute("DROP TABLE IF EXISTS event_participation")
+    execute_sql(cursor,"DROP TABLE IF EXISTS event_participation")
 
     sql = "CREATE TABLE IF NOT EXISTS event_participation"
     sql += """ (
@@ -472,13 +476,13 @@ def add_eventparticipations(n=10):
             );"""
 
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_eventparticipation():
 
         impressions = "I thought the event was " + create_string(10)
-        member = cursor.execute("SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
-        event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        member = execute_sql(cursor,"SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event = execute_sql(cursor,"SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (event, member, impressions)
 
@@ -491,7 +495,7 @@ def add_eventparticipations(n=10):
 
         try:
             print(cmd)
-            cursor.execute(cmd)
+            execute_sql(cursor,cmd)
         except:
             pass
 
@@ -506,13 +510,13 @@ def add_incomes(n=10):
                  );"""
 
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_income():
 
         value = random.randint(1, 100000)
         date = create_date()
-        participation = cursor.execute("SELECT id from event_participation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        participation = execute_sql(cursor,"SELECT id from event_participation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (value, date, participation)
 
@@ -525,13 +529,11 @@ INSERT INTO income (value, date, participation) VALUES('%s', '%s', %d)
         """ % income
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 
 connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
 cursor = connection.cursor()
-
-
 
 def add_sales(n=10):
 
@@ -543,11 +545,11 @@ def add_sales(n=10):
                 CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE ON DELETE CASCADE
                );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_sale():
 
-        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         ammount = random.randint(1, 100)
         item_name = create_string(20)
 
@@ -562,7 +564,7 @@ def add_sales(n=10):
         """ % sale
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_services(n=10):
 
@@ -572,12 +574,12 @@ def add_services(n=10):
                 CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE ON DELETE CASCADE
                );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
     
     def create_service():
 
         description = "This service is about " + create_string(10) 
-        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (description, income)
 
@@ -588,7 +590,7 @@ def add_services(n=10):
         cmd = "INSERT INTO service (description, income) VALUES('%s', %d)" % service
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_donations(n=10):
 
@@ -598,13 +600,13 @@ def add_donations(n=10):
                 CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE
                 );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
 
     def create_donation():
         
         message = "Thanks! " + create_string(10)
-        income = cursor.execute("SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (message, income)
 
@@ -614,7 +616,7 @@ def add_donations(n=10):
         cmd = """INSERT INTO donation (message, income) VALUES('%s', %d)""" % donation
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def add_expenses(n=10):
 
@@ -627,14 +629,14 @@ def add_expenses(n=10):
                 CONSTRAINT "event_id_FK" FOREIGN KEY("event") REFERENCES "event"("id") ON DELETE SET NULL ON UPDATE CASCADE
                 );"""
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     def create_expense():
 
         date = create_date()
         value = random.randint(1, 10000)
         description = "This expense is for " + create_string(20)
-        event = cursor.execute("SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        event = execute_sql(cursor,"SELECT id FROM event ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (date, value, description, event)
 
@@ -646,7 +648,7 @@ def add_expenses(n=10):
         cmd = "INSERT INTO expense (date, value, description, event) VALUES('%s', %d, '%s', %d)" % expense
 
         print(cmd)
-        cursor.execute(cmd)
+        execute_sql(cursor,cmd)
 
 def CreateViews():
 
@@ -657,7 +659,7 @@ def CreateViews():
     WHERE TP.volunteer = M.id;
     """
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     cmd = """
     CREATE VIEW volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) AS
@@ -666,14 +668,14 @@ def CreateViews():
     WHERE W.task = T.id AND W.volunteer = M.id;
     """
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     cmd = """
     CREATE VIEW active_event(name, id) AS
     SELECT name, id FROM event WHERE event.end_date > date('now') OR event.end_date is NULL;
     """
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     cmd = """
     CREATE VIEW active_team_members(name, surname, id, team_name) AS
@@ -682,7 +684,7 @@ def CreateViews():
     WHERE TP.end_date is NULL;
     """
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
 def CreateTriggers():
 
@@ -698,7 +700,7 @@ BEGIN
 END;
     """
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
 
     sql = """ 
 CREATE TRIGGER double_team_participation 
@@ -714,23 +716,32 @@ CREATE TRIGGER double_team_participation
     """
 
     print(sql)
-    cursor.execute(sql)
+    execute_sql(cursor,sql)
+
+def CreateIndexes():
+
+    sql = """
+CREATE UNIQUE INDEX team_name_index
+ON team(name)
+"""
+    print(sql)
+    execute_sql(cursor,sql)
 
 def add_admin(name, surname):
 
     cmd = f"""INSERT INTO member(name, surname) VALUES('{name}', '{surname}');"""
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
-    member_id = cursor.execute("SELECT LAST_INSERT_ROWID()").fetchone()[0]
+    member_id = execute_sql(cursor,"SELECT LAST_INSERT_ROWID()").fetchone()[0]
 
     cmd = f"""INSERT INTO volunteer VALUES({member_id}, '{create_date()}');"""
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
     cmd = f"""INSERT INTO employee VALUES({member_id}, {77777}, '{"Admin"}');"""
     print(cmd)
-    cursor.execute(cmd)
+    execute_sql(cursor,cmd)
 
 def main():
 
@@ -777,6 +788,7 @@ def main():
     add_admin("Admin", "Adminopoulos");
 
     CreateViews()
+    CreateIndexes()
 
 main()
 

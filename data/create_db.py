@@ -268,7 +268,7 @@ CREATE TABLE IF NOT EXISTS "employee"
 
         _id = execute_sql(cursor,"SELECT id FROM member ORDER BY RANDOM() LIMIT 1").fetchone()[0]
         compensation = random.randint(100, 10_000)
-        position_name = "A Position"
+        position_name = random.choice(["Head", "Manager", "Assistant Manager", "Assistant"])
 
         return (_id, compensation, position_name)
 
@@ -804,7 +804,6 @@ def main():
     add_donations()
     add_services()
     add_sales()
-
    
     add_admin("Admin", "Adminopoulos");
 

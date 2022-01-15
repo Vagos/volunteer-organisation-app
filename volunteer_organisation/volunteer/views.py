@@ -166,7 +166,7 @@ def profile(request, volunteer_id):
     with connection.cursor() as cursor:
 
         cursor.execute("""
-        SELECT name, surname, join_date, 
+        SELECT name, surname, join_date, position_name as position,
         (
             SELECT COUNT(*) FROM works_on JOIN task on works_on.task = task.id WHERE volunteer = M.id AND task.completed = false
         ) AS tasks_working_on, 
@@ -183,7 +183,7 @@ def profile(request, volunteer_id):
             )
         ) AS favorite_event_category
 
-        FROM member as M LEFT JOIN volunteer AS V USING(id)
+        FROM member as M LEFT JOIN volunteer AS V USING(id) LEFT JOIN employee USING(id)
         WHERE M.id = %d
         """ % (volunteer_id))
 

@@ -1,3 +1,10 @@
+## Installation
+
+```bash
+$ pip install 
+```
+
+
 ## TODO
 
 ## Evangelos

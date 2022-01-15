@@ -20,12 +20,12 @@ def create_report_graph(report):
     month = [f"{r.year}:{r.quarter}" for r in report] # x axis
 
     plt.rcParams["font.size"] = 7.0
-    plt.rcParams["text.usetex"] = True
-    
+    plt.rcParams["text.usetex"] = False
+
     plt.title("Volunteer Organisation Incomes")
     plt.xlabel("Year/Month")
     plt.ylabel("Incomes")
-    
+
 
     plt.plot(month, incomes)
 
@@ -41,7 +41,7 @@ def create_report_graph(report):
 def index(request):
 
     with connection.cursor() as cursor:
-        
+
         if not logged_in(request): return redirect("member:index")
 
         cursor.execute("SELECT %s IN (SELECT id FROM employee) as is_employee" % request.session["id"])
@@ -53,21 +53,21 @@ def index(request):
         cursor.execute("SELECT name FROM event_category")
         event_categories = fetchall(cursor)
 
-        cursor.execute("""SELECT date, value, expense.description, event.name as event_name, event.id as event_id FROM expense JOIN event ON expense.event = event.id 
+        cursor.execute("""SELECT date, value, expense.description, event.name as event_name, event.id as event_id FROM expense JOIN event ON expense.event = event.id
                        ORDER BY date DESC LIMIT 10""")
         expenses = fetchall(cursor)
 
-        cursor.execute("""SELECT I.date, I.value, M.name as member_name, M.surname as member_surname, 
+        cursor.execute("""SELECT I.date, I.value, M.name as member_name, M.surname as member_surname,
         (
             SELECT IIF(I.id IN (SELECT income FROM donation), "Donation", IIF(I.id IN ( SELECT income FROM service ), "Service", IIF(I.id IN ( SELECT income FROM sale ), "Sale", "None")))
         ) as type
-        FROM 
+        FROM
         income as I JOIN event_participation as P ON I.participation = P.id JOIN member as M on P.member = M.id
         ORDER BY DATE DESC LIMIT 10""")
         incomes = fetchall(cursor)
 
         report = cursor.execute("""
-        SELECT SUM(value) as total, strftime('%Y', date) AS year, strftime('%m', date) / 3 + 1 as quarter 
+        SELECT SUM(value) as total, strftime('%Y', date) AS year, strftime('%m', date) / 3 + 1 as quarter
         FROM income GROUP BY year, quarter ORDER BY year;
         """)
         report = fetchall(cursor)
@@ -79,7 +79,7 @@ def index(request):
         cursor.execute("SELECT T.id, T.name, E.name as event_name  FROM task as T join event as E on T.event = E.id WHERE T.completed = false AND T.creator = %s", (request.session["id"], ))
         created_tasks = fetchall(cursor)
 
-    context = { "event_categories":event_categories, "employees":employees, "expenses":expenses, 
+    context = { "event_categories":event_categories, "employees":employees, "expenses":expenses,
                "incomes":incomes, "active_events":active_events, "created_tasks":created_tasks }
 
     return render(request, "event/index.html", context=context)
@@ -88,18 +88,18 @@ def details(request, event_id):
 
     with connection.cursor() as cursor:
 
-        cursor.execute("""SELECT E.name, E.id, E.start_date, E.end_date, E.category, 
+        cursor.execute("""SELECT E.name, E.id, E.start_date, E.end_date, E.category,
                         (
                             SELECT E.id IN (SELECT id from  active_event)
                         ) as active,
                        (
                            SELECT M.name FROM member as M where M.id = E.organiser
-                       ) as organiser_name, 
+                       ) as organiser_name,
                        (
                            SELECT M.surname FROM member as M where M.id = E.organiser
                        ) as organiser_surname,
                        E.organiser as organiser_id
-                       FROM event AS E WHERE E.id = %d""" % event_id) 
+                       FROM event AS E WHERE E.id = %d""" % event_id)
         event = fetchall(cursor)[0]
 
         cursor.execute("SELECT id, name, completed FROM task WHERE event = %d" % event_id)
@@ -111,15 +111,15 @@ def details(request, event_id):
         participants = fetchall(cursor)
 
         cursor.execute("""
-SELECT SUM(income.value) as total FROM income JOIN event_participation as ep ON income.participation = ep.id 
-WHERE ep.event = %s 
+SELECT SUM(income.value) as total FROM income JOIN event_participation as ep ON income.participation = ep.id
+WHERE ep.event = %s
         """, (event_id,))
         incomes = fetchall(cursor)[0]
 
         has_participated = None
         if logged_in(request):
-            cursor.execute("""SELECT 
-            EXISTS 
+            cursor.execute("""SELECT
+            EXISTS
             (
             SELECT id FROM event_participation WHERE member = %s AND event = %s
             ) as exist
@@ -132,27 +132,27 @@ WHERE ep.event = %s
     return render(request, "event/details.html", context=context)
 
 def add_event(request):
-    
+
     if not request.POST: return HttpResponseRedirect(reverse("event:index"))
 
     with connection.cursor() as cursor:
-        
+
         event_name = request.POST["name"]
 
         start_date = request.POST["start"]
         end_date = request.POST["end"]
 
-        
+
         place = request.POST["place"]
         description = request.POST["description"]
         category = request.POST["category"]
 
-        cursor.execute(""" INSERT INTO event 
+        cursor.execute(""" INSERT INTO event
                            (name, start_date, end_date, place, description, category, organiser)
                            VALUES('%s', '%s','%s','%s','%s','%s', %s)
-                       """ % 
+                       """ %
                        (event_name, start_date, end_date, place, description, category, request.session["id"]))
-        
+
     return HttpResponseRedirect(reverse("event:index"))
 
 
@@ -172,7 +172,7 @@ def add_eventcategory(request):
 def task_add(request):
 
     if not request.POST: return HttpResponseRedirect(reverse("event:index"))
-    
+
     with connection.cursor() as cursor:
 
         t_n = request.POST["name"]
@@ -180,9 +180,9 @@ def task_add(request):
         t_dd = request.POST["due"]
         t_d = request.POST["difficulty"]
 
-        cursor.execute("INSERT INTO task (name, event, due_date, difficulty, entry_date, creator) VALUES('%s', %s, '%s', %s, date('now'), %s)" 
+        cursor.execute("INSERT INTO task (name, event, due_date, difficulty, entry_date, creator) VALUES('%s', %s, '%s', %s, date('now'), %s)"
                        % (t_n, t_e, t_dd, t_d, request.session["id"]))
-    
+
     return redirect("event:index")
 
 def task_delete(request):
@@ -211,7 +211,7 @@ def add_team(request):
 
         cursor.execute("INSERT INTO team (name, description) VALUES('%s', '%s')" % (t_n, t_d) )
         cursor.execute("INSERT INTO team_management (employee, team, start_date) VALUES(%s, '%s', date('now'))" % (request.session["id"], t_n) )
-    
+
     return HttpResponseRedirect(reverse("event:index"))
 
 def join_event(request, event_id):

@@ -16,7 +16,7 @@ def index(request):
 
         teams = fetchall(cursor)
 
-        cursor.execute("""SELECT id, name FROM task WHERE 
+        cursor.execute("""SELECT id, name FROM task WHERE
                        DATE('now') - entry_date < 1
                        """)
 
@@ -32,12 +32,12 @@ def team(request, team_name):
     with connection.cursor() as cursor:
 
         cursor.execute("""
-        SELECT T.name, T.description, M.name as mgr_name, M.surname as mgr_surname, 
-        (SELECT IIF(TM.end_date is NULL, M.id, NULL)) as mgr_id, 
+        SELECT T.name, T.description, M.name as mgr_name, M.surname as mgr_surname,
+        (SELECT IIF(TM.end_date is NULL, M.id, NULL)) as mgr_id,
         (
-            SELECT name FROM 
+            SELECT name FROM
             (
-                SELECT atm.name || ' ' || atm.surname as name, COUNT(task.id) as task_cnt 
+                SELECT atm.name || ' ' || atm.surname as name, COUNT(task.id) as task_cnt
                 FROM active_team_members as atm JOIN works_on ON atm.id = works_on.volunteer 
                 JOIN task ON works_on.task = task.id
                 WHERE atm.team_name = T.name and task.completed = true and task.due_date > DATETIME('now', '-30 day') GROUP BY atm.id ORDER BY task_cnt DESC
@@ -48,9 +48,9 @@ def team(request, team_name):
 
         team = fetchall(cursor)[0]
 
-        cursor.execute(f"""SELECT volunteer_id, name, surname, 
+        cursor.execute(f"""SELECT volunteer_id, name, surname,
         (
-            SELECT volunteer_id IN 
+            SELECT volunteer_id IN
             (SELECT id FROM active_team_members as ATM WHERE ATM.team_name = '{team_name}')
         ) as active
         FROM team_members WHERE team_name = '{team_name}' GROUP BY volunteer_id
@@ -59,13 +59,13 @@ def team(request, team_name):
         members = fetchall(cursor)
 
         cursor.execute("""SELECT *
-        FROM volunteer_task_assigned AS VTA JOIN task ON VTA.task_id = task.id WHERE VTA.volunteer_id IN 
-        (SELECT id FROM active_team_members WHERE team_name = %s) AND task.completed = false GROUP BY VTA.task_id ORDER BY RANDOM() LIMIT 15 
-        """, (team_name,)) 
+        FROM volunteer_task_assigned AS VTA JOIN task ON VTA.task_id = task.id WHERE VTA.volunteer_id IN
+        (SELECT id FROM active_team_members WHERE team_name = %s) AND task.completed = false GROUP BY VTA.task_id ORDER BY RANDOM() LIMIT 15
+        """, (team_name,))
 
         tasks = fetchall(cursor)
 
-        
+
 
     context = {"team":team, "members":members, "tasks":tasks}
 
@@ -91,10 +91,10 @@ def team_leave(request, team_name):
     with connection.cursor() as cursor:
 
         cursor.execute(f"SELECT id FROM team_participation WHERE volunteer = {request.session['id']} AND team = '{team_name}' AND end_date is NULL")
-        
+
         participation = fetchall(cursor)
         if len(participation) == 0: return redirect("volunteer:team", team_name=team_name)
-        
+
         cursor.execute(f"UPDATE team_participation SET end_date = date('now') WHERE id = {participation[0].id}")
 
     return redirect("volunteer:team", team_name=team_name)
@@ -121,7 +121,7 @@ def task(request, task_id):
                     """ % ("", task_id, request.session["id"]))
             except IntegrityError:
                 return redirect("volunteer:task", task_id=task_id)
-        
+
         cursor.execute("""
         SELECT VT.id, VT.name, E.id AS event_id, E.name as event_name, VT.difficulty, VT.creator as creator_id, VT.completed,
         M.name as creator_name, M.surname as creator_surname, VT.due_date
@@ -169,15 +169,15 @@ def profile(request, volunteer_id):
         SELECT name, surname, join_date, position_name as position,
         (
             SELECT COUNT(*) FROM works_on JOIN task on works_on.task = task.id WHERE volunteer = M.id AND task.completed = false
-        ) AS tasks_working_on, 
+        ) AS tasks_working_on,
         (
             SELECT COUNT(*) FROM works_on JOIN task on works_on.task = task.id WHERE volunteer = M.id AND task.completed = true
         ) as tasks_completed,
         (
-            SELECT category FROM 
+            SELECT category FROM
             (
-                SELECT E.category, COUNT(*) as event_cnt FROM volunteer_task_assigned as VTA, task as VT, event as E 
-                WHERE VTA.volunteer_id = M.id AND VT.id = VTA.task_id AND E.id = VT.event 
+                SELECT E.category, COUNT(*) as event_cnt FROM volunteer_task_assigned as VTA, task as VT, event as E
+                WHERE VTA.volunteer_id = M.id AND VT.id = VTA.task_id AND E.id = VT.event
                 GROUP BY E.category
                 ORDER BY event_cnt DESC LIMIT 1
             )
@@ -196,10 +196,10 @@ def profile(request, volunteer_id):
         tasks = fetchall(cursor);
 
         cursor.execute(f"""
-        SELECT TM.team_name as name, 
+        SELECT TM.team_name as name,
         (
         SELECT {volunteer_id} IN (SELECT id FROM active_team_members as ATM WHERE ATM.team_name = TM.team_name)
-        ) 
+        )
         as active FROM team_members as TM WHERE volunteer_id = {volunteer_id}
         """)
         teams = fetchall(cursor)
@@ -224,5 +224,3 @@ def join(request):
         print("This user is already a volunteer!")
 
     return redirect("volunteer:profile", volunteer_id = request.session["id"])
-
-

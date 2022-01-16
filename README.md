@@ -1,3 +1,8 @@
+## Description
+
+A simple django app that is based on a database design for a volunteer organisation.
+In the app there is the ability to manage tasks, volunteer teams, events, expenses and incomes.
+
 ## Installation Instructions
 
 ### Requirments

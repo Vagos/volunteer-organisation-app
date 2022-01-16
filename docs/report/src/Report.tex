@@ -407,6 +407,112 @@ Oι λόγοι που επιλέξαμε το συγκεκριμένο \en{frame
     \end{lstlisting}
     \selectlanguage{greek}
 
+Ένα σημαντικό κομμάτι της εργασίας μας ήταν η ανάπτυξη μηχανισμών για την συγγραφή συντομότερου κώδικα, όπως αναφέρεται παρακάτω.
+
+\subsection{\en{Views}}
+
+Χρησιμοποιήσαμε \en{Views} έτσι ώστε να συντομεύουμε τον κώδικα μας σε περίπλοκα \en{SQL Queries}. Tα \en{Views} είναι εικονικοί πίνακες οι οποίοι μπορεί να περιέχουν δεδομένα από έναν ή περισσότερους πίνακες της βάσης μας. 
+
+Για παράδειγμα:
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+        CREATE VIEW team_members(volunteer_id, name, surname, team_name) AS
+        SELECT M.id, M.name, M.surname, TP.team
+        FROM team_participation as TP, member as M
+        WHERE TP.volunteer = M.id;
+    \end{lstlisting}
+    \selectlanguage{greek}
+
+Το συγκεκριμένο \en{view} περιέχει τα μέλη μιας ομάδας ανεξαρτήτως αν είναι ενεργά ή όχι.
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+        CREATE VIEW active_team_members(name, surname, id, team_name) AS
+        SELECT M.name, M.surname, M.id, T.name 
+        FROM team_participation ΑS
+        TP JOIN team as T ON TP.team = T.name JOIN member as M ON TP.volunteer = M.id 
+        WHERE TP.end_date is NULL;
+    \end{lstlisting}
+    \selectlanguage{greek}
+
+Παραπάνω δημιουργούμε έναν εικονικό πίνακα που περιέχει μόνο τα ενεργά μέλη μίας ομάδας.
+    
+    \selectlanguage{english}
+    \begin{lstlisting}
+        CREATE VIEW 
+        volunteer_task_assigned(volunteer_id, volunteer_name, volunteer_surname, task_id, task_name) 
+        AS
+        SELECT M.id, M.name, M.surname, T.id, T.name
+        FROM task as T, member as M, works_on as W
+        WHERE W.task = T.id AND W.volunteer = M.id;
+    \end{lstlisting}
+    \selectlanguage{greek}
+    
+Στην συγκεκριμένη περίπτωση, αντλούμε όλα τα \en{tasks} στα οποία απασχολείται ένας εθελοντής.
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+        CREATE VIEW active_event(name, id) AS
+        SELECT name, id FROM event WHERE event.end_date > date('now') 
+        OR event.end_date is NULL;
+    \end{lstlisting}
+    \selectlanguage{greek}
+
+Το συγκεκριμένο \en{view} μας επιτρέπει να κατηγοροποιήσουμε ένα \en{event} ως ενεργό.
+
+\subsection{\en{Indexes}}
+Επιπλέον συμπεριλάβαμε \en{Indexes}, μηχανισμούς που μας επιτρέπουν να ανακτήσουμε δεδομένα από την βάση μας πολύ γρήγορα. 
+Η εντολή \src{CREATE UNIQUE INDEX} δημιουργεί έναν μοναδικό δείκτη στον πίνακά μας. Για παράδειγμα:
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+    CREATE UNIQUE INDEX team_name_index ON team(name)
+    \end{lstlisting}
+    \selectlanguage{greek}
+Δηλαδή το όνομα μίας ομάδας είναι μοναδικό.
+
+\subsection{\en{Triggers}}
+Ένα \en{Trigger} είναι μία αποθηκευμένη διαδικασία στην βάση δεδομένων, η οποία ενεργοποείται όταν συμβαίνει ένα ειδικό συμβάν που εμείς έχουμε επιλέξει.
+
+Όπως φαίνεται παρακάτω, έχει δημιουργηθεί ένα \en{trigger} για την περίπτωση που ένα μέλος θέλει να παρακολουθήσει ένα \en{event} το οποίο δεν είναι ενεργό, δηλαδή έχει πραγματοποιηθεί στο παρελθόν.
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+    CREATE TRIGGER correct_participation_date 
+    BEFORE INSERT ON event_participation
+    BEGIN 
+        SELECT 
+        CASE 
+            WHEN NEW.event NOT IN (SELECT id FROM active_event) 
+            THEN 
+              RAISE (ABORT, 'No new participations allowed on this event. It is not active.')
+        END;
+    END;
+    \end{lstlisting}
+    \selectlanguage{greek}
+
+Αντίστοιχα, με το παρακάτω \en{trigger} δεν επιτρέπουμε σε κάποιον να ξανασυμμετέχει σε μία ομάδα, προτού απεγραφεί από αυτήν.
+
+    \selectlanguage{english}
+    \begin{lstlisting}
+    CREATE TRIGGER double_team_participation 
+    BEFORE INSERT ON team_participation
+    BEGIN 
+        SElECT 
+        CASE 
+          WHEN EXISTS (SELECT id FROM team_participation as TP 
+          WHERE TP.volunteer = NEW.volunteer AND 
+          TP.team = NEW.team AND TP.end_date is NULL) 
+          THEN 
+          RAISE(ABORT, 'A volunteer cannot join the same team twice without leaving first.')
+        END;
+    END;   
+    \end{lstlisting}
+    \selectlanguage{greek}    
+    
+
+
 \section{Συμπεράσματα}
 Μέσω της συγκεκριμένη εργασίας ήρθαμε σε επαφή με ένα νέο για έμας εργαλείο, τις βάσεις δεδομένων. Θεωρούμε πως ήταν πολύ διδακτική για εμάς, από άποψης τόσο γνώσεων όσο και συνεργασίας.  
 
@@ -414,7 +520,7 @@ Oι λόγοι που επιλέξαμε το συγκεκριμένο \en{frame
 Το τελικό μας αποτέλεσμα θεωρούμε πως αντικατοπτρίζει επακριβώς την δουλειά μας κατά την διάρκεια του εξαμήνου. Στόχος μας ήταν η εργασία μας να προσεγγίζει όσο το δυνατόν καλύτερα τις απαιτήσεις ενός εθελοντικού οργανισμού, γι' αυτό και δώσαμε πολύ έμφαση στο πως θα στήσουμε την βάση μας σε θεωρητικό επίπεδο. Τέλος, το \en{Website} μας υλοποιήθηκε με σκοπό να έχει την μέγιστη δυνατή ευχρηστία και να προσεγγίζει το πρόβλημά μας ρεαλιστικά. 
 
 \section{Αξιολόγηση τησ συνεργασίασ μασ}
-Η συνεργασία μας κύλησε ομαλά καθ' όλη την διάρκεια του εξαμήνου. Φροντίζαμε να αναλαμβάνουμε \en{tasks} τα προχωρούσαν παράλληλα, έτσι ώστε αν υπήρχε κάποιο πρόβλημα σε κάποιο τμήμα της δουλειάς να μην παρεμποδιζόταν η συνέχεια του \en{project}. Θεωρούμε πως αυτή η τακτική συνέβαλε καθοριστικά στην ομαλή διεκπεραίωση της εργασίας μας.
+Η συνεργασία μας κύλησε ομαλά καθ' όλη την διάρκεια του εξαμήνου. Φροντίζαμε να αναλαμβάνουμε \en{tasks} τα οποία προχωρούσαν παράλληλα, έτσι ώστε αν υπήρχε κάποιο πρόβλημα σε κάποιο τμήμα της δουλειάς να μην παρεμποδιζόταν η συνέχεια του \en{project}. Θεωρούμε πως αυτή η τακτική συνέβαλε καθοριστικά στην ομαλή διεκπεραίωση της εργασίας μας.
 
 \section{Χρονοδιάγραμμα δράσεων}
 

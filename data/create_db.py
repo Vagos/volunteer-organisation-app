@@ -92,7 +92,7 @@ def create_task(verbs, targets):
 def add_team_managements(n=10):
 
     sql = """
-CREATE TABLE IF NOT EXISTS team_management 
+CREATE TABLE IF NOT EXISTS team_management
 (
 "employee" INT NOT NULL,
 "team" varchar(100),
@@ -351,7 +351,7 @@ def add_workson(n=10):
         INSERT INTO works_on (evaluation, task, volunteer)
         VALUES('%s', %d, %d)
         """ % workson
-        
+
         try:
             print(cmd)
             execute_sql(cursor,cmd)
@@ -575,10 +575,10 @@ def add_services(n=10):
                );"""
     print(sql)
     execute_sql(cursor,sql)
-    
+
     def create_service():
 
-        description = "This service is about " + create_string(10) 
+        description = "This service is about " + create_string(10)
         income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (description, income)
@@ -594,7 +594,7 @@ def add_services(n=10):
 
 def add_donations(n=10):
 
-    sql = "CREATE TABLE IF NOT EXISTS donation" 
+    sql = "CREATE TABLE IF NOT EXISTS donation"
     sql += """("message" TEXT DEFAULT NULL DEFAULT '',
                "income" INTEGER NOT NULL,
                 CONSTRAINT "income_id_FK" FOREIGN KEY("income") REFERENCES "income"("id") ON UPDATE CASCADE
@@ -604,13 +604,13 @@ def add_donations(n=10):
 
 
     def create_donation():
-        
+
         message = "Thanks! " + create_string(10)
         income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (message, income)
 
-    
+
     for i in range(n):
         donation = create_donation()
         cmd = """INSERT INTO donation (message, income) VALUES('%s', %d)""" % donation
@@ -679,8 +679,8 @@ def CreateViews():
 
     cmd = """
     CREATE VIEW active_team_members(name, surname, id, team_name) AS
-    SELECT M.name, M.surname, M.id, T.name 
-    FROM team_participation as TP JOIN team as T ON TP.team = T.name JOIN member as M ON TP.volunteer = M.id 
+    SELECT M.name, M.surname, M.id, T.name
+    FROM team_participation as TP JOIN team as T ON TP.team = T.name JOIN member as M ON TP.volunteer = M.id
     WHERE TP.end_date is NULL;
     """
     print(cmd)
@@ -689,12 +689,12 @@ def CreateViews():
 def CreateTriggers():
 
     sql = """
-CREATE TRIGGER correct_participation_date 
+CREATE TRIGGER correct_participation_date
 BEFORE INSERT ON event_participation
-BEGIN 
-    SELECT 
-        CASE 
-            WHEN NEW.event NOT IN (SELECT id FROM active_event) THEN 
+BEGIN
+    SELECT
+        CASE
+            WHEN NEW.event NOT IN (SELECT id FROM active_event) THEN
                 RAISE (ABORT, 'No new participations allowed on this event. It is not active.')
             END;
 END;
@@ -702,13 +702,13 @@ END;
     print(sql)
     execute_sql(cursor,sql)
 
-    sql = """ 
-CREATE TRIGGER double_team_participation 
+    sql = """
+CREATE TRIGGER double_team_participation
     BEFORE INSERT ON team_participation
 
-    BEGIN 
-        SElECT 
-            CASE 
+    BEGIN
+        SElECT
+            CASE
                 WHEN EXISTS (SELECT id FROM team_participation as TP WHERE TP.volunteer = NEW.volunteer AND TP.team = NEW.team AND TP.end_date is NULL) THEN
                     RAISE(ABORT, 'A volunteer cannot join the same team twice without leaving first.')
                 END;
@@ -804,7 +804,7 @@ def main():
     add_donations()
     add_services()
     add_sales()
-   
+
     add_admin("Admin", "Adminopoulos");
 
     CreateViews()

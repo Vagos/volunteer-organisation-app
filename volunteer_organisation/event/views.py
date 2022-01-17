@@ -23,9 +23,8 @@ def create_report_graph(report):
     plt.rcParams["text.usetex"] = False
 
     plt.title("Volunteer Organisation Incomes")
-    plt.xlabel("Year/Month")
+    plt.xlabel("Year/Quarter")
     plt.ylabel("Incomes")
-
 
     plt.plot(month, incomes)
 
@@ -215,6 +214,9 @@ def add_team(request):
     return HttpResponseRedirect(reverse("event:index"))
 
 def join_event(request, event_id):
+
+    if not logged_in(request):
+        redirect("member:join")
 
     with connection.cursor() as cursor:
         try:

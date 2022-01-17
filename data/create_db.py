@@ -8,6 +8,9 @@ def execute_sql(cursor, sql):
 
     return cursor.execute(sql)
 
+connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
+cursor = connection.cursor()
+
 with open(base + "/member_usernames.txt", "r") as member_name_file:
 
     member_names, member_surnames = member_name_file.read().strip().split('\n\n')
@@ -55,7 +58,7 @@ def create_username(names, surnames):
 
     return name, surname
 
-def create_date(previous_date = "2015-1-1"):
+def create_date(previous_date = "2020-1-1"):
     """ Create a random date that happens AFTER previous_date."""
 
     p_y, p_m, p_d = (int(i) for i in previous_date.split('-'))
@@ -216,7 +219,8 @@ CREATE TABLE IF NOT EXISTS "event"
 "category" VARCHAR(20) DEFAULT NULL,
 "organiser" integer DEFAULT NULL ,
 CONSTRAINT "category_FK" FOREIGN KEY("category") REFERENCES "event_category"("name") ON DELETE SET NULL ON UPDATE CASCADE,
-CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE
+CONSTRAINT "organiser_FK" FOREIGN KEY("organiser") REFERENCES "employee"("id") ON DELETE SET NULL ON UPDATE CASCADE,
+CHECK (start_date <= end_date)
 );"""
     print(sql)
     execute_sql(cursor,sql)
@@ -499,7 +503,7 @@ def add_eventparticipations(n=10):
         except:
             pass
 
-def add_incomes(n=10):
+def add_incomes(n=0):
 
     sql = "CREATE TABLE IF NOT EXISTS income"
     sql += """ ("id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -514,7 +518,7 @@ def add_incomes(n=10):
 
     def create_income():
 
-        value = random.randint(1, 100000)
+        value = random.randint(1, 5000)
         date = create_date()
         participation = execute_sql(cursor,"SELECT id from event_participation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
@@ -532,8 +536,20 @@ INSERT INTO income (value, date, participation) VALUES('%s', '%s', %d)
         execute_sql(cursor,cmd)
 
 
-connection = sqlite3.connect("volunteer_organisation/db.sqlite3")
-cursor = connection.cursor()
+def create_income():
+
+    value = random.randint(1, 5000)
+    date = create_date()
+    participation = execute_sql(cursor,"SELECT id from event_participation ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+
+    income = (value, date, participation)
+
+    cmd = """
+INSERT INTO income (value, date, participation) VALUES('%s', '%s', %d)
+        """ % income
+
+    print(cmd)
+    execute_sql(cursor,cmd)
 
 def add_sales(n=10):
 
@@ -549,7 +565,8 @@ def add_sales(n=10):
 
     def create_sale():
 
-        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
+        create_income()
+        income = execute_sql(cursor,"SELECT LAST_INSERT_ROWID()").fetchone()[0]
         ammount = random.randint(1, 100)
         item_name = create_string(20)
 
@@ -578,8 +595,9 @@ def add_services(n=10):
 
     def create_service():
 
+        create_income()
+        income = execute_sql(cursor,"SELECT LAST_INSERT_ROWID()").fetchone()[0]
         description = "This service is about " + create_string(10)
-        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (description, income)
 
@@ -605,8 +623,9 @@ def add_donations(n=10):
 
     def create_donation():
 
+        create_income()
+        income = execute_sql(cursor,"SELECT LAST_INSERT_ROWID()").fetchone()[0]
         message = "Thanks! " + create_string(10)
-        income = execute_sql(cursor,"SELECT id FROM income ORDER BY RANDOM() LIMIT 1").fetchone()[0]
 
         return (message, income)
 
@@ -778,6 +797,7 @@ def main():
     add_team_managements(0)
     add_teamparticipations(0)
     add_eventparticipations(0)
+    add_incomes(0)
 
     CreateTriggers()
 
@@ -798,12 +818,11 @@ def main():
 
     add_eventparticipations(2000)
 
-    add_expenses()
+    add_expenses(300)
 
-    add_incomes()
-    add_donations()
-    add_services()
-    add_sales()
+    add_donations(10)
+    add_services(10)
+    add_sales(10)
 
     add_admin("Admin", "Adminopoulos");
 
